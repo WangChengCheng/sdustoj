@@ -1,3 +1,4 @@
+# coding=utf-8
 from __future__ import unicode_literals
 __author__ = 'Lonely'
 
@@ -226,7 +227,7 @@ class Runtimeinfo(models.Model):
 
 class Sim(models.Model):
     s_id = models.IntegerField(primary_key=True)
-    sim_s_id = models.IntegerField(blank=True, null=True)
+    sim_s_id = models.IntegerField(primary_key=True)
     sim = models.IntegerField(blank=True, null=True)
 
     class Meta:
@@ -249,6 +250,7 @@ class Solution(models.Model):
     num = models.IntegerField(blank=True, null=True)
     code_length = models.IntegerField(blank=True, null=True)
     judgetime = models.DateTimeField(blank=True, null=True)
+    is_sim = models.IntegerField(blank=True, null=False)
 
     class Meta:
         managed = False
@@ -293,12 +295,15 @@ class Users(models.Model):
     nick = models.CharField(max_length=100)
     school = models.CharField(max_length=100)
     activated = models.IntegerField()
+    accepted = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'users'
 
+
 class Status(models.Model):
+    status_id = models.IntegerField()
     result_id = models.IntegerField()
     status = models.CharField(max_length=45, blank=True, null=True)
 
@@ -311,6 +316,8 @@ class Language(models.Model):
     language_id = models.AutoField(primary_key=True)
     language = models.IntegerField(blank=True, null=True)
     language_name = models.CharField(max_length=45, blank=True, null=True)
+    language_compile = models.CharField(max_length=45, blank=True, null=True)
+    language_ext = models.CharField(max_length=45, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -332,8 +339,12 @@ class Statusinfo(models.Model):
     num = models.IntegerField(blank=True, null=True)
     code_length = models.IntegerField(blank=True, null=True)
     judgetime = models.DateTimeField(blank=True, null=True)
+    status_id = models.IntegerField(blank=True, null=True)
     status = models.CharField(max_length=45, blank=True, null=True)
     language_name = models.CharField(max_length=45, blank=True, null=True)
+    is_sim = models.IntegerField(blank=True, null=False)
+    # sim_s_id = models.IntegerField(blank=True, null=True)
+    # sim = models.IntegerField(blank=True, null=True)
 
     class Meta:
         db_table = 'statusinfo'
@@ -352,3 +363,14 @@ class Contestinfo(models.Model):
     language=models.CharField(max_length=45, blank=True, null=True)
     class Meta:
         db_table = 'contestinfo'
+
+
+class Archive(models.Model):
+    user_id = models.CharField(max_length=20)
+    problem_id = models.IntegerField()
+    solution_id = models.AutoField(primary_key=True)
+    language_ext = models.CharField(max_length=45, blank=True, null=True)
+    result = models.CharField(max_length=45, blank=True, null=True)
+    code = models.TextField()
+    class Meta:
+        db_table = 'archive'

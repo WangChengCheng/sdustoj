@@ -6,20 +6,25 @@
     <link rel="stylesheet" href="static/common/css/reset.css">
     <link rel="stylesheet" href="static/common/css/common.css">
     <link rel="stylesheet" href="static/css/user.css">
+    <link rel="stylesheet" href="static/css/bootstrap.min.css">
     <link rel = "Shortcut Icon" href="static/img/school.png">
-     <script language="javascript" src="static/js/jquery.min.js"></script>
+    <script language="javascript" src="static/js/jquery.min.js"></script>
     <script language="javascript" src="static/js/jquery.cookie.js"></script>
     <script language="javascript" src="static/js/login.js"></script>
-        <script language="javascript" src="static/common/js/notice.js"></script>
+    <script language="javascript" src="static/js/user.js"></script>
+    <script language="javascript" src="static/common/js/notice.js"></script>
+    <!-- 引入echarts.js -->
+    <script language="javascript" src="static/js/echarts.min.js"></script>
 
 </head>
+<body>
 <body>
 <header class="head">
     <div class="common_Container">
         <nav class="headnav">
             <a href="index"><h1 class="headnavalltitle">SDUSTOJ</h1></a>
             <ul class="headnavul clearfix">
-           <li class="headnavli"> <a href="/" class="headnavtitle headnavtitleactive">Home</a></li>
+                <li class="headnavli"> <a href="/" class="headnavtitle headnavtitleactive">Home</a></li>
                 <li class="headnavli"> <a href="webboard" class="headnavtitle">Web Board</a></li>
                 <li class="headnavli"> <a href="problemset" class="headnavtitle">ProblemSet</a></li>
                 <li class="headnavli"> <a href="status" class="headnavtitle">Status</a></li>
@@ -41,31 +46,159 @@
         </div>
     </div>
 </div>
-<div class="usercontainer">
-    <div class="common_Container">
-         <h2 class="username">{% if login == True %}<a href="useredit">(Modify Info)</a>{% endif %}{{ user.user_id }}--{{ user.nick }}</h2>
-         <table class="usertable">
-             <tr><td width="15%">No.</td><td width="25%" align="center">4</td><td width="70%" align="center">Solved Problems List</td></tr>
-             <tr><td>Solved</td><td align="center"><a href="#">{{ solve }}</a></td>
-             <td rowspan="14" align="left" valign="top" class="problemtd">
-                 {% for item in problemlist %}
-                 <a href="problem?id={{ item.problem_id }}">{{ item.problem_id }} </a>
-                 {% endfor %}
+<div class="username">
+    <h2 class="username">{% if login == True %}<a href="useredit">(Modify Info)</a>{% endif %}{{ user.user_id }}--{{ user.nick }}</h2>
+</div>
+<div class="container col-md-offset-3">
 
-             </td></tr>
-             <tr><td>Submit</td><td align="center"><a href="#">{{ submit }}</a></td>
-             <tr><td>AC</td><td align="center"><a href="#">{{ ac }}</a></td>
-             <tr><td>PE</td><td align="center"><a href="#">{{ pe }}</a></td>
-             <tr><td>WA</td><td align="center"><a href="#">{{ wa }}</a></td>
-             <tr><td>TLE</td><td align="center"><a href="#">{{ tle }}</a></td>
-             <tr><td>MLE</td><td align="center"><a href="#">{{ mle }}</a></td>
-             <tr><td>OLE</td><td align="center"><a href="#">{{ ole }}</a></td>
-             <tr><td>RE</td><td align="center"><a href="#">{{ re }}</a></td>
-             <tr><td>CE</td><td align="center"><a href="#">{{ ce }}</a></td>
-         </table>
+    <br>
+    <br>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="row">
+                    <div class="col-md-12">
+                        <table>
+                            <tr>
+                                <td width="15%">No.</td>
+                                <td width="25%" align="center">4</td>
+                            </tr>
+                            <tr>
+                                <td>Solved</td>
+                                <td align="center">
+                                    {% if solve == 0 %}
+                                    <a href="#">{{ solve }}</a>
+                                    {% endif %}
+                                    {% if solve != 0 %}
+                                    <a href="status?user_id={{ user.user_id }}&result=2">{{ solve }}</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Submit</td>
+                                <td align="center">
+                                    {% if submit == 0 %}
+                                    <a href="#">{{ submit }}</a>
+                                    {% endif %}
+                                    {% if submit != 0 %}
+                                    <a href="status?user_id={{ user.user_id }}">{{ submit }}</a>
+                                    {% endif %}
+                                    {% if login == True %}
+                                    <a href="archive?user_id={{ user.user_id }}" title="Get all the code you have submitted">(Archive)</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% if ac != 0 %}
+                            <tr>
+                                <td>AC</td>
+                                <td align="center">
+                                    <!--{% if ac == 0 %}-->
+                                    <!--<a href="#">{{ ac }}</a>-->
+                                    <!--{% endif %}-->
+                                    <a href="status?user_id={{ user.user_id }}&result=2">{{ ac }}</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if pe != 0 %}
+                            <tr>
+                                <td>PE</td>
+                                <td align="center">
+                                    <!--{% if pe == 0 %}-->
+                                    <!--<a href="#">{{ pe }}</a>-->
+                                    <!--{% endif %}-->
+                                    <a href="status?user_id={{ user.user_id }}&result=9">{{ pe }}</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if wa != 0 %}
+                            <tr>
+                                <td>WA</td>
+                                <td align="center">
+                                    <!--{% if wa == 0 %}-->
+                                    <!--<a href="#">{{ wa }}</a>-->
+                                    <!--{% endif %}-->
+                                    <a href="status?user_id={{ user.user_id }}&result=5">{{ wa }}</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if tle != 0 %}
+                            <tr>
+                                <td>TLE</td>
+                                <td align="center">
+                                    <!--{% if tle == 0 %}-->
+                                    <!--<a href="#">{{ tle }}</a>-->
+                                    <!--{% endif %}-->
+                                    <a href="status?user_id={{ user.user_id }}&result=3">{{ tle }}</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if mle != 0 %}
+                            <tr>
+                                <td>MLE</td>
+                                <td align="center">
+                                    <!--{% if mle == 0 %}-->
+                                    <!--<a href="#">{{ mle }}</a>-->
+                                    <!--{% endif %}-->
+                                    <a href="status?user_id={{ user.user_id }}&result=4">{{ mle }}</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if ole != 0 %}
+                            <tr>
+                                <td>OLE</td>
+                                <td align="center">
+                                    <!--{% if ole == 0 %}-->
+                                    <!--<a href="#">{{ ole }}</a>-->
+                                    <!--{% endif %}-->
+                                    <a href="status?user_id={{ user.user_id }}&result=7">{{ ole }}</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if re != 0 %}
+                            <tr>
+                                <td>RE</td>
+                                <td align="center">
+                                    <!--{% if re == 0 %}-->
+                                    <!--<a href="#">{{ re }}</a>-->
+                                    <!--{% endif %}-->
+                                    <a href="status?user_id={{ user.user_id }}&result=6">{{ re }}</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if ce != 0 %}
+                            <tr>
+                                <td>CE</td>
+                                <td align="center">
+                                    <!--{% if ce == 0 %}-->
+                                    <!--<a href="#">{{ ce }}</a>-->
+                                    <!--{% endif %}-->
+                                    <a href="status?user_id={{ user.user_id }}&result=8">{{ ce }}</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                    <div class="col-md-12" id="status" style=" margin-top: 10px; width: 320px; height: 200px;">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <table>
+                    <tr><td align="center">Solved Problems List</td></tr>
+                    <tr>
+                        <td rowspan="14" align="left" valign="top" class="problemtd">
+                            {% for item in problemlist %}
+                            <a href="problem?id={{ item.problem_id }}">{{ item.problem_id }}&nbsp </a>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
     </div>
+
 </div>
 {% include 'base/footer.html' %}
-<script src="static/js/user.js"></script>
 </body>
 </html>

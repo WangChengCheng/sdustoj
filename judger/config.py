@@ -5,11 +5,11 @@ count_thread = 4
 #评测程序队列容量
 queue_size = 4
 #数据库地址
-db_host = "139.129.30.86"
+db_host = "127.0.0.1"
 #数据库用户名
-db_user = "sdustoj"
+db_user = "root"
 #数据库密码
-db_password = "sdust"
+db_password = "root"
 #数据库名字
 db_name = "sdustoj"
 #数据库编码

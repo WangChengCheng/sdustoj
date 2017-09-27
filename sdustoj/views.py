@@ -1,3 +1,11 @@
+# coding=utf-8
+import codecs
+import logging
+
+import sys
+from rexec import FileWrapper
+
+import select
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, RequestContext
 from django.template.context_processors import csrf
@@ -19,6 +27,10 @@ from DjangoCaptcha import Captcha
 from django.utils.timezone import utc
 from django.utils.timezone import local
 import operator
+from django.http import StreamingHttpResponse
+
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 '''
 this is the views file
@@ -43,13 +55,16 @@ The Contest Problem Limit By 24;
 If you want to add contest problem max num,
 Please Modify problem_index with yourself!
 '''
-problem_index=['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
+problem_index = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
+                 'U', 'V', 'W', 'X', 'Y', 'Z']
 
 '''
 Use in administrator termial
 Check the user wheather login or not,
 if not will return to admin login page!
 '''
+
+
 def admin_control(request):
     c = RequestContext(request)
     uname = ''
@@ -63,28 +78,31 @@ def admin_control(request):
     else:
         return HttpResponseRedirect('login', c)
 
+
 '''
 Deal General user login in system,
 check user login info,ip just so so.
 '''
+
+
 def signin(request, user=None, p=""):
-    ca=Captcha(request)
+    ca = Captcha(request)
     c = RequestContext(request)
-    code=''
-    u=''
+    code = ''
+    u = ''
     ip = request.META.get('REMOTE_ADDR', None)
     if 'uname' in request.POST:
         u = request.POST.get('uname')
-    else :
+    else:
         return render_to_response('Sign/signin.html', c)
     if 'pw' in request.POST:
         p = request.POST.get('pw')
     if 'code' in request.POST:
-        code=request.POST.get('code')
+        code = request.POST.get('code')
         if not ca.validate(code):
             return render_to_response('Sign/signin.html', {'error': 'verifyerror'}, c)
     else:
-        return render_to_response('Sign/signin.html',  c)
+        return render_to_response('Sign/signin.html', c)
     try:
         user = Users.objects.get(user_id=str(u))
     except Users.DoesNotExist:
@@ -94,7 +112,7 @@ def signin(request, user=None, p=""):
     else:
         result = 'false'
     if result == 'true':
-        log=Loginlog(user_id=u,ip=ip,password=p,time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
+        log = Loginlog(user_id=u, ip=ip, password=p, time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
         log.save()
         response = HttpResponseRedirect('index', c)
         response.set_cookie('uname', u, 3600)
@@ -103,9 +121,12 @@ def signin(request, user=None, p=""):
     else:
         return render_to_response('Sign/signin.html', {'error': 'pwderror'}, c)
 
+
 '''
 Render the index page
 '''
+
+
 def index(request):
     c = RequestContext(request)
     return render_to_response('index/index.html', c)
@@ -114,6 +135,8 @@ def index(request):
 '''
 Deal user page
 '''
+
+
 def user(request):
     c = RequestContext(request)
     userid = ''
@@ -126,7 +149,8 @@ def user(request):
     user = Users.objects.filter(user_id=userid)[0]
     problemlist = Statusinfo.objects.filter(user_id=userid, status='Accepted').values('problem_id').distinct().order_by(
         'problem_id')
-    solve = len(problemlist)
+    print problemlist
+    solve = len(problemlist)  # raise an error
     submit = len(Statusinfo.objects.filter(user_id=userid))
     ac = len(Statusinfo.objects.filter(user_id=userid, status='Accepted'))
     pe = len(Statusinfo.objects.filter(user_id=userid, status='Presentation Error'))
@@ -135,15 +159,18 @@ def user(request):
     mle = len(Statusinfo.objects.filter(user_id=userid, status='Memory Limit Exceeded'))
     ole = len(Statusinfo.objects.filter(user_id=userid, status='Output Limit Exceeded'))
     re = len(Statusinfo.objects.filter(user_id=userid, status='Runtime Error'))
-    ce = len(Statusinfo.objects.filter(user_id=userid, status='Compiler Error'))
+    ce = len(Statusinfo.objects.filter(user_id=userid, status='Compile Error'))
     return render_to_response('user/user.html',
                               {'user': user, 'submit': submit, 'ac': ac, 'pe': pe, 'wa': wa, 'tle': tle, 'mle': mle,
                                'ole': ole, 're': re, 'ce': ce, 'solve': solve, 'problemlist': problemlist,
                                'login': login}, c)
 
+
 '''
 Render  the useredit pagr and deal modify user info
 '''
+
+
 def useredit(request):
     c = RequestContext(request)
     userid = ''
@@ -152,30 +179,33 @@ def useredit(request):
         userid = request.COOKIES['uname']
         user = Users.objects.filter(user_id=userid)[0]
     if 'uname' in request.POST:
-        pwd=request.POST.get('pwd')
-        rpwd=request.POST.get('rpwd')
+        pwd = request.POST.get('pwd')
+        rpwd = request.POST.get('rpwd')
         if pwd != rpwd:
-            return render_to_response('user/useredit.html', {'user': user,'result':'pwderror'}, c)
-        nick=request.POST.get('nick')
-        email=request.POST.get('email')
-        user.password=pwd
-        user.nick=nick
-        user.email=email
+            return render_to_response('user/useredit.html', {'user': user, 'result': 'pwderror'}, c)
+        nick = request.POST.get('nick')
+        email = request.POST.get('email')
+        user.password = pwd
+        user.nick = nick
+        user.email = email
         user.save()
         return HttpResponse('index')
     return render_to_response('user/useredit.html', {'user': user}, c)
+
 
 '''
 Render problem page,
 it can base on jump from page(contest or not),
 dispaly the different info
 '''
+
+
 def problem(request):
     c = RequestContext(request)
     islogin = False
     uname = ''
     language_id = 100
-    contestid=-1
+    contestid = -1
     if 'uname' in request.COOKIES:
         uname = request.COOKIES.get('uname')
     if uname != '':
@@ -188,12 +218,15 @@ def problem(request):
         language_id = request.GET.get('l_id')
     problem = Problem.objects.filter(problem_id=pid)
     return render_to_response('problemset/problem.html',
-                              {'problem': problem[0], 'islogin': islogin, 'contestid': contestid,'language_id':language_id}, c)
+                              {'problem': problem[0], 'islogin': islogin, 'contestid': contestid,
+                               'language_id': language_id}, c)
 
 
 '''
 Rennder the problemset page
 '''
+
+
 def problemset(request):
     c = RequestContext(request)
     page_num = 1
@@ -209,14 +242,76 @@ def problemset(request):
     return render_to_response('problemset/problemset.html',
                               {'problemlist': problemlist, 'page': page, 'cur_page': cur_page}, c)
 
+
+def problemstatistics(request):
+    c = RequestContext(request)
+    p_id = ''
+    count_info = []
+    problem_info = []
+
+    if 'p_id' in request.GET:
+        p_id = request.GET.get('p_id')
+    if p_id != '' and p_id is not None:
+        # lang_c = Statusinfo.objects.filter(problem_id=p_id, language_name='C').count()
+        # lang_cpp = Statusinfo.objects.filter(problem_id=p_id, language_name='C++').count()
+        # lang_java = Statusinfo.objects.filter(problem_id=p_id, language_name='Java').count()
+
+        # get all data needed
+        count_info = Statusinfo.objects.filter(problem_id=p_id).extra(
+            select={
+                'C': "count(case when language_name='C' then language_name end)",
+                'CPP': "count(case when language_name='C++' then language_name end)",
+                'Java': "count(case when language_name='Java' then language_name end)",
+                'AC': "count(case when status='Accepted' then status end)",
+                'WA': "count(case when status='Wrong Answer' then status end)",
+                'Waiting': "count(case when status='Waiting' then status end)",
+                'TLE': "count(case when status='Time Limit Exceeded' then status end)",
+                'MLE': "count(case when status='Memory Limit Exceeded' then status end)",
+                'RE': "count(case when status='Runtime Error' then status end)",
+                'OL': "count(case when status='Output Limit' then status end)",
+                'CE': "count(case when status='Compile Error' then status end)",
+                'PE': "count(case when status='Presentation Error' then status end)",
+                'SE': "count(case when status='System Error' then status end)",
+                'Judging': "count(case when status='Judging' then status end)",
+                'sim': "count(case when is_sim=1 then is_sim end)"
+            }
+        ).get()
+        problem_info = Problem.objects.filter(problem_id=p_id).get()
+        # json_info = serializers.serialize("json", count_info)
+
+        print count_info.problem_id
+        # info = "SELECT \
+        #         count(case when language_name='C' then language_name end) C, \
+        #         count(case when language_name='C++' then language_name end) 'C++', \
+        #         count(case when language_name='Java' then language_name end) Java, \
+        #         count(case when status='Accepted' then status end) AC,\
+        #         count(case when status='Wrong Answer' then status end) WA,\
+        #         count(case when status='Waiting' then status end) Wainting,\
+        #         count(case when status='Time Limit Exceeded' then status end) TLE,\
+        #         count(case when status='Memory Limit Exceeded' then status end) MLE,\
+        #         count(case when status='Runtime Error' then status end) RE,\
+        #         count(case when status='Output Limit' then status end) OL,\
+        #         count(case when status='Compile Error' then status end) CE,\
+        #         count(case when status='Presentation Error' then status end) PE,\
+        #         count(case when status='System Error' then status end) SE,\
+        #         count(case when status='Judging' then status end) Judging \
+        #         FROM sdustoj.statusinfo \
+        #         where problem_id = " + str(p_id) + ";"
+
+    return render_to_response('problemset/problemstatistics.html', {'count_info': count_info,
+                                                                    'problem_info': problem_info}, c)
+
+
 '''
 Render the submit page
 '''
+
+
 def submit(request):
     c = RequestContext(request)
     contestid = -1
     languageid = 100
-    languages=[]
+    languages = []
     if 'c_id' in request.GET:
         contestid = request.GET.get('c_id')
     if 'l_id' in request.GET:
@@ -228,7 +323,7 @@ def submit(request):
             if item.language == int(languageid):
                 languages.append(item)
     else:
-        languages=language
+        languages = language
     return render_to_response('problemset/submit.html',
                               {'problemid': problemid, 'language': languages, 'contestid': contestid}, c)
 
@@ -236,6 +331,8 @@ def submit(request):
 '''
 Render the faq page
 '''
+
+
 def faq(request):
     c = RequestContext(request)
     return render_to_response('FAQ/faq.html', c)
@@ -244,32 +341,38 @@ def faq(request):
 '''
 Render the about page
 '''
+
+
 def about(request):
     c = RequestContext(request)
     return render_to_response('Other/about.html', c)
 
+
 '''
 Render the sign page
 '''
+
+
 def sign(request):
     c = RequestContext(request)
     return render_to_response('Sign/sign.html', c)
 
 
-
 '''
 Render the registe data
 '''
+
+
 def signup(request):
     c = RequestContext(request)
     if 'uname' not in request.POST:
         return render_to_response("Sign/signup.html", c)
     ca = Captcha(request)
     if 'code' in request.POST:
-        code= request.POST.get('code')
+        code = request.POST.get('code')
         if not ca.validate(code):
             return render_to_response("Sign/signup.html", {'error': 4}, c)
-    else :
+    else:
         return render_to_response("Sign/signup.html", c)
     uname = request.POST.get('uname')
     pwd = request.POST.get('pwd')
@@ -290,54 +393,110 @@ def signup(request):
         return HttpResponseRedirect('index')
     elif pwd != '' and rpwd != '':
         return render_to_response("Sign/signup.html", {'error': 1}, c)
-    else :
+    else:
         return render_to_response("Sign/signup.html", c)
-
-
-
 
 
 '''
 render the status page
 '''
+
+
 def status(request):
     c = RequestContext(request)
     page_num = 1
     contest_id = -1
-    ifcontest='False'
-    if 'page_num' in request.GET:
-        page_num = int(request.GET.get('page_num'))
-    if 'op' in request.GET:
-        op = request.GET.get('op')
-        if 'add' in str(op):
-            page_num = page_num + 1
-        if 'sub' in str(op) and page_num > 1:
-            page_num = page_num - 1
+    ifcontest = 'False'
+    # sim_set = None
+    problem_id = ''
+    user_id = ''
+    result = ''
+    language = ''
+    uname = ''
+    power = ''
+
+    if 'uname' in request.COOKIES:
+        uname = request.COOKIES.get('uname')
+    if 'power' in request.COOKIES:
+        power = request.COOKIES.get('power')
+
+    # if 'page_num' in request.GET:
+    #     page_num = int(request.GET.get('page_num'))
+    # if 'op' in request.GET:
+    #     op = request.GET.get('op')
+    #     if 'add' in str(op):
+    #         page_num = page_num + 1
+    #     if 'sub' in str(op) and page_num > 1:
+    #         page_num = page_num - 1
+
+    # 添加搜索功能
+    statusinfo = Statusinfo.objects.all().order_by('-solution_id')
+    if 'problem_id' in request.GET \
+            and request.GET.get('problem_id') != '' \
+            and request.GET.get('problem_id') is not None:
+        problem_id = int(request.GET.get('problem_id'))
+        statusinfo = statusinfo.filter(problem_id=problem_id)
+    if 'user_id' in request.GET \
+            and request.GET.get('user_id') != '' \
+            and request.GET.get('user_id') is not None:
+        user_id = request.GET.get('user_id')
+        statusinfo = statusinfo.filter(user_id=user_id)
+    if 'result' in request.GET \
+            and request.GET.get('result') != '' \
+            and request.GET.get('result') is not None \
+            and request.GET.get('result') != 'all':
+        result = int(request.GET.get('result'))
+        statusinfo = statusinfo.filter(status_id=result)
+    if 'language' in request.GET \
+            and request.GET.get('language') != '' \
+            and request.GET.get('language') is not None \
+            and request.GET.get('language') != 'all':
+        language = int(request.GET.get('language'))
+        statusinfo = statusinfo.filter(language=language)
+    # select.option中的下拉列表值
+    language_set = Language.objects.all()
+    print language_set
+    result_set = Status.objects.values('status_id', 'result_id', 'status')
+    print result_set
+
+    # print statusinfo.values('solution_id', 'is_sim')
+
     if 'c_id' in request.GET:
         contest_id = request.GET.get('c_id')
         if str(contest_id).isdigit() and int(contest_id) != -1 and contest_id != None and contest_id != 'None':
-            ifcontest='True'
-            statusinfo = Statusinfo.objects.filter(contest_id=contest_id).order_by('-solution_id').values('status','problem_id','contest_id','solution_id','user_id','memory','time','in_date','language','code_length','judgetime','valid','num','language_name','ip')
+            ifcontest = 'True'
+            statusinfo = statusinfo.filter(contest_id=contest_id).order_by('-solution_id').values(
+                'status', 'status_id', 'problem_id', 'contest_id', 'solution_id', 'user_id', 'memory', 'time',
+                'in_date', 'language',
+                'code_length', 'judgetime', 'valid', 'num', 'language_name', 'ip', 'is_sim')
             for item in statusinfo:
-                item['ifcontest']='True'
-                problem_num=problem_index[ContestProblem.objects.get(contest_id=contest_id,problem_id=item['problem_id']).num]
-                item['problem_num']=problem_num
-        else:
-            statusinfo = Statusinfo.objects.all().order_by('-solution_id')
-    else:
-        statusinfo = Statusinfo.objects.all().order_by('-solution_id')
+                item['ifcontest'] = 'True'
+                problem_num = problem_index[
+                    ContestProblem.objects.get(contest_id=contest_id, problem_id=item['problem_id']).num]
+                item['problem_num'] = problem_num
+    # # 如果设置为检查相似度
+    # if config.sim_enable is True:
+    #     sim_set = Sim.objects.all().order_by('-s_id')
+
     p = Paginator(statusinfo, config.page_count)
-    page = p.page_range
+    page = p.page_range  # <==>if it has 10 pages,and the Paginator.page_range = [1,2,3,4,5,6,7,8,9,10]
     if len(page) == 0:
-        page_num=1
+        page_num = 1
     elif len(page) < page_num:
-        page_num = page[-1]
+        page_num = page[-1]  # <==>if it has 5 pages,and the Paginator.page_range = [1,2,3,4,5], page[-1]=5
     statusinfo = p.page(page_num).object_list
-    return render_to_response('Status/status.html', {'statusinfo': statusinfo, 'cur_page': page_num,'ifcontest':ifcontest}, c)
+    return render_to_response('Status/status.html',
+                              {'statusinfo': statusinfo, 'result_set': result_set, 'language_set': language_set,
+                               'problem_id': problem_id, 'user_id': user_id, 'result': result, 'language': language,
+                               'cur_page': page_num, 'ifcontest': ifcontest, 'c_id': contest_id,
+                               'ifsim': config.sim_enable}, c)
+
 
 '''
 render the contest page
 '''
+
+
 def contest(request):
     c = RequestContext(request)
     uname = ''
@@ -347,10 +506,12 @@ def contest(request):
     if 'uname' in request.COOKIES:
         power = request.COOKIES.get('power')
     contestid = request.GET.get('id')
-    problem_list = ContestProblem.objects.filter(contest_id=contestid).order_by('num','problem_id').values('contest_id', 'id','problem_id','title', 'num')
+    problem_list = ContestProblem.objects.filter(contest_id=contestid).order_by('num', 'problem_id').values(
+        'contest_id', 'id', 'problem_id', 'title', 'num')
     for item in problem_list:
-        item['num']=problem_index[item['num']]
-        status = Statusinfo.objects.filter(user_id=uname, problem_id=item['problem_id'], contest_id=contestid,status='Accepted')
+        item['num'] = problem_index[item['num']]
+        status = Statusinfo.objects.filter(user_id=uname, problem_id=item['problem_id'], contest_id=contestid,
+                                           status='Accepted')
         if len(status) > 0:
             item['status'] = 'Y'
         else:
@@ -361,7 +522,7 @@ def contest(request):
         users = ContestUsers.objects.filter(contest_id=contestid, user_id=uname)
         if len(users) <= 0:
             return render_to_response('error/errorinfo.html', {'error': 'contestprivilegeerror'}, c)
-    c_time = int(time.mktime(time.localtime()))
+    c_time = int(time.mktime(datetime.datetime.utcnow().timetuple()))
     s_time = int(time.mktime(contest.start_time.timetuple()))
     e_time = int(time.mktime(contest.end_time.timetuple()))
     if c_time < s_time:
@@ -372,10 +533,13 @@ def contest(request):
     return render_to_response('contest/contest.html',
                               {'problemlist': problem_list, 'contest': contest, 'cur_time': cur_time}, c)
 
+
 '''
 render the contest list page
 control the contest page jump
 '''
+
+
 def contestlist(request):
     c = RequestContext(request)
     page_num = 1
@@ -405,10 +569,13 @@ def contestlist(request):
     return render_to_response('contest/contestlist.html',
                               {'contestlist': contestlist, 'page': page, 'cur_page': page_num}, c)
 
+
 '''
 Render the ranklistpage
 deal user data to hava user rank
 '''
+
+
 def ranklist(request):
     c = RequestContext(request)
     page_num = 1
@@ -423,13 +590,13 @@ def ranklist(request):
     users = list(Users.objects.all().values('nick', 'user_id'))
     for user in users:
         user_id = user['user_id']
-        user['ac'] = ac = len(Statusinfo.objects.filter(status='Accepted', user_id=user_id))
-        user['sub'] = sub = len(Statusinfo.objects.filter(user_id=user_id))
+        user['ac'] = ac = int(Users.objects.get(user_id=user_id).accepted)
+        user['sub'] = sub = int(Users.objects.get(user_id=user_id).submit)
         try:
-            user['rate'] = rate = str(round(ac * 100.0 / sub,2)) + '%'
+            user['rate'] = rate = str(round(ac * 100.0 / sub, 2)) + '%'
         except:
             user['rate'] = '0.0%'
-    users.sort(key=operator.itemgetter('ac'),reverse=True)
+    users.sort(key=operator.itemgetter('ac'), reverse=True)
     count = 1
     for user in users:
         user['index'] = count
@@ -437,7 +604,7 @@ def ranklist(request):
     p = Paginator(users, config.page_count)
     page = p.page_range
     if len(page) == 0:
-        page_num=1
+        page_num = 1
     elif len(page) < page_num:
         page_num = page[-1]
     users = p.page(page_num).object_list
@@ -445,60 +612,71 @@ def ranklist(request):
 
 
 def webboard(request):
-    c=RequestContext(request)
-    return render_to_response('webboard/webboard.html',c)
+    c = RequestContext(request)
+    return render_to_response('webboard/webboard.html', c)
+
 
 '''
 render the board page
 '''
+
+
 def board(request):
-    c=RequestContext(request)
-    contest_id=-1
+    c = RequestContext(request)
+    contest_id = -1
     if 'c_id' in request.GET:
-        contest_id=request.GET.get('c_id')
+        contest_id = request.GET.get('c_id')
         if contest_id.isdigit():
             contest_id = int(contest_id)
-    c_problems=ContestProblem.objects.filter(contest_id=contest_id)
-    problem_size=len(c_problems)
-    c_users=ContestUsers.objects.filter(contest_id=contest_id).values('user_id').distinct()
-    user_size=len(c_users)
-    result=[]
-    names=[]
+    c_problems = ContestProblem.objects.filter(contest_id=contest_id)
+    problem_size = len(c_problems)
+    c_users = ContestUsers.objects.filter(contest_id=contest_id).values('user_id').distinct()
+    user_size = len(c_users)
+    result = []
+    names = []
     for k in range(problem_size):
         names.append(problem_index[k])
     for i in range(user_size):
         result.append({})
-        result[i]['user_id']=u=c_users[i]['user_id']
-        result[i]['ac_size']=len(Statusinfo.objects.filter(user_id=u,contest_id=contest_id,status='Accepted').values('problem_id').distinct())
-        result[i]['judge']=[]
+        result[i]['user_id'] = u = c_users[i]['user_id']
+        result[i]['ac_size'] = len(
+            Statusinfo.objects.filter(user_id=u, contest_id=contest_id, status='Accepted').values(
+                'problem_id').distinct())
+        result[i]['judge'] = []
         for j in range(problem_size):
             result[i]['judge'].append({})
-            result[i]['judge'][j]['ac']='False'
-            result[i]['judge'][j]['sub']=0
-            p=ContestProblem.objects.get(contest_id=contest_id,num=j)
-            p_id=p.problem_id
-            p_sub=Statusinfo.objects.filter(contest_id=contest_id,problem_id=p_id,user_id=u)
-            p_ac=Statusinfo.objects.filter(contest_id=contest_id,problem_id=p_id,status='Accepted',user_id=u)
-            result[i]['judge'][j]['sub']=len(p_sub)
+            result[i]['judge'][j]['ac'] = 'False'
+            result[i]['judge'][j]['sub'] = 0
+            p = ContestProblem.objects.get(contest_id=contest_id, num=j)
+            p_id = p.problem_id
+            p_sub = Statusinfo.objects.filter(contest_id=contest_id, problem_id=p_id, user_id=u)
+            p_ac = Statusinfo.objects.filter(contest_id=contest_id, problem_id=p_id, status='Accepted', user_id=u)
+            result[i]['judge'][j]['sub'] = len(p_sub)
             if len(p_sub) <= 0:
-                result[i]['judge'][j]['ac']='None'
-            if len(p_ac) >0:
-                result[i]['judge'][j]['ac']='True'
-    result.sort(key=operator.itemgetter('ac_size'),reverse=True)
-    #result.sort(key=lambda x,y:cmp(x['ac_size'],y['ac_size']))
-    return render_to_response('board/board.html',{'result':result,'names':names},c)
+                result[i]['judge'][j]['ac'] = 'None'
+            if len(p_ac) > 0:
+                result[i]['judge'][j]['ac'] = 'True'
+    result.sort(key=operator.itemgetter('ac_size'), reverse=True)
+    # result.sort(key=lambda x,y:cmp(x['ac_size'],y['ac_size']))
+    return render_to_response('board/board.html', {'result': result, 'names': names}, c)
+
 
 '''
 render the admin page
 * this page is not be used
 '''
+
+
 def admin(request):
     c = RequestContext(request)
     return render_to_response('admin/admin.html', c)
 
+
 '''
 Deal the submit source data
 '''
+
+
 def sub_source(request):
     c = RequestContext(request)
     ip = request.META.get('REMOTE_ADDR', None)
@@ -513,7 +691,8 @@ def sub_source(request):
         contestid = -1
     if problemid == None or problemid == '' or problemid == 'None':
         problemid = -1
-    s = Solution(ip=str(ip),problem_id=int(problemid), user_id=username, contest_id=int(contestid), language=int(languageid),
+    s = Solution(ip=str(ip), problem_id=int(problemid), user_id=username, contest_id=int(contestid),
+                 language=int(languageid),
                  result=0, code_length=len(source), time=0, memory=0,
                  in_date=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
     s.save()
@@ -528,18 +707,21 @@ def sub_source(request):
     user.save()
     return HttpResponseRedirect('status?c_id=' + str(contestid), c)
 
+
 '''
 Render the admin login page
 '''
+
+
 def admin_login(request):
     c = RequestContext(request)
     user_name = ''
-    ca =Captcha(request)
+    ca = Captcha(request)
     pwd = ''
-    ip=request.META.get('REMOTE_ADDR',None)
+    ip = request.META.get('REMOTE_ADDR', None)
     if 'user_name' in request.POST:
         user_name = request.POST.get('user_name')
-    else :
+    else:
         return render_to_response("admin/login.html", c)
     if 'code' in request.POST:
         code = request.POST.get('code')
@@ -552,7 +734,8 @@ def admin_login(request):
             user = Users.objects.get(user_id=user_name)
             if str(user.password) == pwd:
                 if user.defunct != 'C':
-                    log=Loginlog(user_id=user_name,password=pwd,ip=ip,time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
+                    log = Loginlog(user_id=user_name, password=pwd, ip=ip,
+                                   time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
                     log.save()
                     response = HttpResponseRedirect('index?menuName=&submenuName=See%20SDUSTOJ', c)
                     response.set_cookie('uname', user_name, 3600)
@@ -567,21 +750,30 @@ def admin_login(request):
     else:
         return render_to_response('admin/login.html', {'user_error': True}, c)
 
+
 '''
 Render the admin index page
 '''
+
+
 def admin_index(request):
     return render_to_response('admin/index.html')
+
 
 '''
 render the admin add problem page
 '''
+
+
 def admin_addproblem(request):
     return render_to_response('admin/addproblem.html')
+
 
 '''
 deal the admin add problem data
 '''
+
+
 def admin_addproblem_save(request):
     c = RequestContext(request)
     title = request.POST.get('title')
@@ -603,17 +795,23 @@ def admin_addproblem_save(request):
         return HttpResponse("failure", c)
     return HttpResponse("success", c)
 
+
 '''
 render admin add contest page
 '''
+
+
 def admin_addcontest(request):
     language = Language.objects.all()
     privilege = ContestPrivilege.objects.all();
     return render_to_response("admin/addcontest.html", {'language': language, 'privilege': privilege})
 
+
 '''
 deal admin add contest data
 '''
+
+
 def admin_addcontest_save(request):
     c = RequestContext(request)
     flag = True
@@ -630,13 +828,13 @@ def admin_addcontest_save(request):
                 private=int(contest_private), langmask=int(language))
     c.save()
     contestid = c.contest_id
-    index=0
+    index = 0
     for problem in re.split(';|,', str(problems)):
         try:
             if problem != '':
                 item = Problem.objects.get(problem_id=problem)
                 cp = ContestProblem(contest_id=contestid, title=item.title, problem_id=item.problem_id, num=index)
-                index+=1
+                index += 1
                 cp.save()
         except Exception, e:
             flag = False
@@ -652,10 +850,13 @@ def admin_addcontest_save(request):
         return HttpResponse("success", c)
     return HttpResponse("error", c)
 
+
 '''
 deal comile error data
 jump to compile error page
 '''
+
+
 def compileerror(request):
     c = RequestContext(request)
     solution_id = ''
@@ -664,9 +865,12 @@ def compileerror(request):
     compileinfo = Compileinfo.objects.get(solution_id=solution_id)
     return render_to_response('error/errorinfo.html', {'error': 'compileerror', 'compileerror': compileinfo.error}, c)
 
+
 '''
 render the admin problem list page
 '''
+
+
 def admin_problemlist(request):
     c = RequestContext(request)
     page_num = 1
@@ -682,24 +886,30 @@ def admin_problemlist(request):
     p = Paginator(problems, config.admin_page_cuont)
     page = p.page_range
     if len(page) == 0:
-        page_num=1
+        page_num = 1
     elif len(page) < page_num:
         page_num = page[-1]
     problems = p.page(page_num).object_list
     return render_to_response('admin/problemlist.html',
                               {'problems': problems, 'cur_page': page_num, 'totalpage': page[-1]}, c)
 
+
 '''
 render the add problem file page
 '''
+
+
 def admin_addproblemfile(request):
     c = RequestContext(request)
     problems = Problem.objects.all()
     return render_to_response('admin/addproblemfile.html', {'problems': problems}, c)
 
+
 '''
 deal the add problem file data
 '''
+
+
 def admin_addproblemfile_save(request):
     c = RequestContext(request)
     files = request.FILES.getlist('files')
@@ -711,8 +921,8 @@ def admin_addproblemfile_save(request):
             if not os.path.exists(data_path):
                 os.mkdir(data_path)
             else:
-                shutil.rmtree(data_path)
-                os.mkdir(data_path)
+                shutil.rmtree(data_path)  # <==>删除目录(!!!之前的文件会被删除)
+                os.mkdir(data_path)  # <==>重建目录
             for f in files:
                 destination = open(data_path + '/' + f.name, 'wb+')
                 for chunk in f.chunks():
@@ -726,9 +936,12 @@ def admin_addproblemfile_save(request):
             return render_to_response('admin/addproblemfile.html', {'result': 'failure'}, c)
     return render_to_response('admin/addproblemfile.html', {'result': 'failure'}, c)
 
+
 '''
 render the contest list page
 '''
+
+
 def admin_contestlist(request):
     c = RequestContext(request)
     page_num = 1
@@ -744,16 +957,19 @@ def admin_contestlist(request):
     p = Paginator(contests, config.admin_page_cuont)
     page = p.page_range
     if len(page) == 0:
-        page_num=1
+        page_num = 1
     elif len(page) < page_num:
         page_num = page[-1]
     contests = p.page(page_num).object_list
     return render_to_response('admin/admin_contestlist.html',
                               {'contests': contests, 'cur_page': page_num, 'totalpage': page[-1]}, c)
 
+
 '''
 render the news list page
 '''
+
+
 def admin_newslist(request):
     c = RequestContext(request)
     page_num = 1
@@ -769,29 +985,38 @@ def admin_newslist(request):
     p = Paginator(news, config.admin_page_cuont)
     page = p.page_range
     if len(page) == 0:
-        page_num=1
+        page_num = 1
     elif len(page) < page_num:
         page_num = page[-1]
     news = p.page(page_num).object_list
     return render_to_response('admin/newslist.html', {'news': news, 'cur_page': page_num, 'totalpage': page[-1]}, c)
 
+
 '''
 render the admin add user page
 '''
+
+
 def admin_adduser(request):
-    c=RequestContext(request)
-    return render_to_response('admin/adduser.html',c)
+    c = RequestContext(request)
+    return render_to_response('admin/adduser.html', c)
+
 
 '''
 render the admin add news page
 '''
+
+
 def admin_addnews(request):
     c = RequestContext(request)
     return render_to_response('admin/addnews.html', c)
 
+
 '''
 deal the news data
 '''
+
+
 def admin_dealnews(request):
     c = RequestContext(request)
     op = request.POST.get('op')
@@ -812,9 +1037,12 @@ def admin_dealnews(request):
             return HttpResponse('failure', c)
     return HttpResponse('success', c)
 
+
 '''
 render the admin add news page
 '''
+
+
 def admin_addnews_save(request):
     c = RequestContext(request)
     type = ''
@@ -837,9 +1065,12 @@ def admin_addnews_save(request):
     except Exception, e:
         return HttpResponse('failure', c)
 
+
 '''
 deal admin get news port
 '''
+
+
 def admin_getnews(request):
     c = RequestContext(request)
     type = request.POST.get('type')
@@ -865,9 +1096,12 @@ def admin_getnews(request):
             str = str[0:-1] + ']'
         return HttpResponse(str, c)
 
+
 '''
 render the admin user list
 '''
+
+
 def admin_userlist(request):
     c = RequestContext(request)
     page_num = 1
@@ -883,7 +1117,7 @@ def admin_userlist(request):
     p = Paginator(users, config.admin_page_cuont)
     page = p.page_range
     if len(page) == 0:
-        page_num=1
+        page_num = 1
     elif len(page) < page_num:
         page_num = page[-1]
     users = p.page(page_num).object_list
@@ -895,6 +1129,8 @@ def admin_userlist(request):
 deal with login out port
 clear up login data
 '''
+
+
 def loginout(request):
     response = HttpResponseRedirect('index')
     response.delete_cookie("uname", path="/")
@@ -909,6 +1145,8 @@ use with status page
 return the user's code info
 response json
 '''
+
+
 def getcodeinfo(request):
     c = RequestContext(request)
     solution_id = -1
@@ -928,11 +1166,14 @@ def getcodeinfo(request):
         solution_id = -1
         return HttpResponse("{}", c)
 
+
 '''
 Administrator termial.
 Deal contestlist,problemlist,userlist
 the delete function of these page
 '''
+
+
 def admin_deal_data(request):
     c = RequestContext(request)
     type = request.POST.get('type')
@@ -962,11 +1203,14 @@ def admin_deal_data(request):
             return HttpResponse("{\"result\":\"failure\"}", c)
     return HttpResponse("{\"result\":\"success\"}", c)
 
+
 '''
 use of
 Modify userinfo
 response json
 '''
+
+
 def admin_dealuser(request):
     c = RequestContext(request)
     pwd = request.POST.get('pwd')
@@ -983,10 +1227,13 @@ def admin_dealuser(request):
         return HttpResponse("{\"result\":\"failure\"}", c)
     return HttpResponse("{\"result\":\"success\"}", c)
 
+
 '''
 use of administrator termial
 Render the userloginlog page
 '''
+
+
 def admin_userloginlog(request):
     c = RequestContext(request)
     page_num = 1
@@ -1002,90 +1249,220 @@ def admin_userloginlog(request):
     p = Paginator(userlog, config.admin_page_cuont)
     page = p.page_range
     if len(page) == 0:
-        page_num=1
+        page_num = 1
     elif len(page) < page_num:
         page_num = page[-1]
     users = p.page(page_num).object_list
-    return render_to_response('admin/userloginlog.html', {'userlog': userlog, 'cur_page': page_num, 'totalpage': page[-1]}, c)
+    return render_to_response('admin/userloginlog.html',
+                              {'userlog': userlog, 'cur_page': page_num, 'totalpage': page[-1]}, c)
+
 
 '''
 deal edit problem data
 '''
+
+
 def admin_editproblem(request):
-    c=RequestContext(request)
-    type=''
-    problem_id=-1
+    c = RequestContext(request)
+    type = ''
+    problem_id = -1
     if 'type' in request.POST:
         type = request.POST.get('type')
-        problem_id=request.POST.get('p_id')
+        problem_id = request.POST.get('p_id')
     if type == 'get':
-        problem=Problem.objects.get(problem_id=problem_id)
-        result={}
-        result['problemid']=problem.problem_id
-        result['title']=problem.title
-        result['describe']=problem.description
-        result['input']=problem.input
-        result['output']=problem.output
-        result['sampleinput']=problem.sample_input
-        result['sampleoutput']=problem.sample_output
-        result['hint']=problem.hint
-        result['appendcode']=''
-        return HttpResponse(json.dumps(result),c)
+        problem = Problem.objects.get(problem_id=problem_id)
+        result = {}
+        result['problemid'] = problem.problem_id
+        result['title'] = problem.title
+        result['describe'] = problem.description
+        result['input'] = problem.input
+        result['output'] = problem.output
+        result['sampleinput'] = problem.sample_input
+        result['sampleoutput'] = problem.sample_output
+        result['hint'] = problem.hint
+        result['appendcode'] = ''
+        return HttpResponse(json.dumps(result), c)
     elif type == 'save':
         try:
-            problem=Problem.objects.get(problem_id=problem_id)
-            problem.description=request.POST.get('describe')
-            problem.input=request.POST.get('input')
-            problem.output=request.POST.get('output')
-            problem.sample_input=request.POST.get('sampleinput')
-            problem.sample_output=request.POST.get('sampleoutput')
-            problem.title=request.POST.get('title')
-            problem.hint=request.POST.get('hint')
+            problem = Problem.objects.get(problem_id=problem_id)
+            problem.description = request.POST.get('describe')
+            problem.input = request.POST.get('input')
+            problem.output = request.POST.get('output')
+            problem.sample_input = request.POST.get('sampleinput')
+            problem.sample_output = request.POST.get('sampleoutput')
+            problem.title = request.POST.get('title')
+            problem.hint = request.POST.get('hint')
             problem.save()
         except:
             return HttpResponse("{\"result\":\"failure\"}")
     return HttpResponse("{\"result\":\"success\"}")
 
+
 '''
 add users accordding user file
 '''
+
+
 def admin_adduserfile(request):
-    c=RequestContext(request)
+    c = RequestContext(request)
     file = request.FILES.get('userfile')
-    ip = request.META.get('REMOTE_ADDR',None)
+    ip = request.META.get('REMOTE_ADDR', None)
     try:
         for line in file:
-            userinfo = re.split(',|;',str(line))
-            if userinfo[0] != '' and userinfo[1] != '' and userinfo[2] != '' and userinfo[3] !='':
-                u = Users(defunct='C', nick=userinfo[1], user_id=userinfo[0], password=userinfo[2], email=userinfo[3], volume=str(555), language=str(555),ip=str(ip), activated=str(555), submit=0, solved=0)
+            userinfo = re.split(',|;', str(line))
+            if userinfo[0] != '' and userinfo[1] != '' and userinfo[2] != '' and userinfo[3] != '':
+                u = Users(defunct='C', nick=userinfo[1], user_id=userinfo[0], password=userinfo[2], email=userinfo[3],
+                          volume=str(555), language=str(555), ip=str(ip), activated=str(555), submit=0, solved=0)
                 u.save()
             else:
-                return render_to_response('admin/adduser.html',{'result':'failure'},c)
+                return render_to_response('admin/adduser.html', {'result': 'failure'}, c)
     except:
-        return render_to_response('admin/adduser.html',{'result':'failure'},c)
-    return render_to_response('admin/adduser.html',{'result':'success'},c)
+        return render_to_response('admin/adduser.html', {'result': 'failure'}, c)
+    return render_to_response('admin/adduser.html', {'result': 'success'}, c)
+
 
 def admin_rejudge(request):
-    c=RequestContext(request)
-    return render_to_response('admin/rejudge.html',c)
+    c = RequestContext(request)
+    return render_to_response('admin/rejudge.html', c)
+
 
 '''
 deal rejudge data
 '''
+
+
 def admin_rejudge_save(request):
-    c=RequestContext(request)
-    rejudgefrom=request.POST.get('rejudgefrom')
-    rejudgeto=request.POST.get('rejudgeto')
+    c = RequestContext(request)
+    rejudgefrom = request.POST.get('rejudgefrom')
+    rejudgeto = request.POST.get('rejudgeto')
 
     try:
         if rejudgefrom.isdigit() and rejudgeto.isdigit():
-            problems=Solution.objects.filter(solution_id__gte=int(rejudgefrom),solution_id__lte=int(rejudgeto))
+            problems = Solution.objects.filter(solution_id__gte=int(rejudgefrom), solution_id__lte=int(rejudgeto))
             for item in problems:
-                item.result=0
+                item.result = 0
                 item.save()
         else:
-            return render_to_response('admin/rejudge.html',{'result':'failure'},c)
-    except Exception,e:
-        return render_to_response('admin/rejudge.html',{'result':'failure'},c)
-    return render_to_response('admin/rejudge.html',{'result':'success'},c)
+            return render_to_response('admin/rejudge.html', {'result': 'failure'}, c)
+    except Exception, e:
+        return render_to_response('admin/rejudge.html', {'result': 'failure'}, c)
+    return render_to_response('admin/rejudge.html', {'result': 'success'}, c)
 
+
+def sim(request):
+    c = RequestContext(request)
+    s_id = request.GET.get('s_id')
+    sim_info = Sim.objects.filter(s_id=s_id).order_by('-sim')
+    return render_to_response('Status/sim.html', {'sim_info': sim_info}, c)
+
+
+def file_iterator(file_name, chunk_size=512):
+    with open(file_name) as f:
+        while True:
+            c = f.read(chunk_size)
+            if c:
+                yield c
+            else:
+                break
+
+
+'''
+deal problem_file download file
+'''
+
+
+def download_file(request):
+    p_id = request.GET['problem_id']
+    fn = os.path.join(config.data_dir, p_id, '%s.pdf' % p_id)
+
+    response = StreamingHttpResponse(file_iterator(fn))
+    response['Content-Type'] = 'application/octet-stream'
+    response['Content-Disposition'] = 'attachment;filename= %s.pdf' % p_id
+    return response
+
+
+'''
+deal with the archive_file download
+'''
+
+
+def archive(request):
+    global response
+    user_id = request.GET.get('user_id')
+    write_code_to_file(user_id)
+    tgz_file(config.archive_dir, user_id)
+    fn = os.path.join(config.archive_dir, '%s.tgz' % user_id)
+    while True:
+        if os.path.exists(fn):
+            response = StreamingHttpResponse(file_iterator(fn))
+            # 文件流写入客户端硬盘
+            response['Content-Type'] = 'application/octet-stream'
+            response['Content-Disposition'] = \
+                'attachment;filename= %s.tgz' % user_id
+            break
+    return response
+
+
+def write_code_to_file(user_id):
+    archive_obj = Archive.objects.filter(user_id=user_id).order_by('problem_id')
+    uid_path = os.path.join(config.archive_dir, user_id)
+    if not os.path.exists(uid_path):
+        try:
+            os.mkdir(uid_path)
+        except OSError as e:
+            logging.error(e)
+    for item in archive_obj:
+        pid_path = os.path.join(uid_path, str(item.problem_id))
+        if not os.path.exists(pid_path):
+            os.mkdir(pid_path)
+        sid_path = os.path.join(pid_path, '%s_%s.%s' % (item.solution_id, item.result, item.language_ext))
+        # try:
+        #     os.mkdir(sid_path)
+        # except OSError as e:
+        #     logging.error(e)
+        try:
+            f = codecs.open(sid_path, 'w')
+            try:
+                f.write(item.code)
+            except OSError as e:
+                logging.error(e)
+                return False
+        except OSError as e:
+            logging.error(e)
+            return False
+    return True
+
+
+def tgz_file(father_path, child_path):
+    pth = os.path.join(father_path, child_path)
+    tgz_pth = os.path.join(father_path, '%s.tgz' % child_path)
+    try:
+        os.system('tar -zcvf %s %s' % (tgz_pth, pth))
+    except OSError as e:
+        logging.error(e)
+        return False
+    return True
+
+
+# def download_tgz(tgz_file):
+#     try:
+#         temp = open(tgz_file, "rb")
+#     except IOError as e:
+#         logging.error(e)
+#         return HttpResponse("Open zip error")
+#     wrapper = FileWrapper(temp)
+#     response = HttpResponse(wrapper, content_type='application/tgz')
+#     realZipfileName = os.path.split(zipfileName)[1]
+#     response['Content-Encoding'] = 'utf-8'
+#     response['Content-Disposition'] = 'attachment; filename=%s' % realZipfileName
+#     response['Content-Length'] = temp.tell()
+#     temp.seek(0)
+
+
+def clean_archive_dir(user_id):
+    '''清理archive目录，删除临时文件'''
+    dir_name = os.path.join(config.archive_dir, str(user_id))
+    shutil.rmtree(dir_name)
+    tgz_name = os.path.join(config.archive_dir, "%s.tgz" % user_id)
+    if os.path.exists(tgz_name):
+        os.remove(tgz_name)

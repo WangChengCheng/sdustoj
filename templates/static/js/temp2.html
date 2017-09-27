@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<header class="head">
+    <div class="common_Container">
+        <nav class="headnav">
+            <a href="index"><h1 class="headnavalltitle">SDUSTOJ</h1></a>
+            <ul class="headnavul clearfix">
+                <li class="headnavli"> <a href="/" class="headnavtitle headnavtitleactive">Home</a></li>
+                <li class="headnavli"> <a href="webboard" class="headnavtitle">Web Board</a></li>
+                <li class="headnavli"> <a href="problemset" class="headnavtitle">ProblemSet</a></li>
+                <li class="headnavli"> <a href="status" class="headnavtitle">Status</a></li>
+                <li class="headnavli"> <a href="ranklist" class="headnavtitle">Ranklist</a></li>
+                <li class="headnavli"> <a href="contestlist" class="headnavtitle">Contest</a></li>
+                <li class="headnavli"> <a href="faq" class="headnavtitle">F.A.Qs</a></li>
+            </ul>
+            <div class="headnavactions">
+                <a href="signup" class="headnavtitle">Sign up</a>
+                <a href="signin" class="headnavtitle">Sign in</a>
+            </div>
+        </nav>
+    </div>
+</header>
+<div class="topinfo scroolPic">
+    <div class="common_Container">
+        <div class="topinfoleft topinfocommon">
+            <h1 class="toptitle">山东科技大学OnlineJudge</h1>
+        </div>
+    </div>
+</div>
+<div class="container">
+    <div>
+        <h2 class="username">{% if login == True %}<a href="useredit">(Modify Info)</a>{% endif %}{{ user.user_id }}--{{ user.nick }}</h2>
+    </div>
+    <br>
+    <br>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-5">
+                <div class="row">
+                    <div class="col-md-12">
+                        <table>
+                            <tr>
+                                <td width="15%">No.</td>
+                                <td width="25%" align="center">4</td>
+                            </tr>
+                            <tr>
+                                <td>Solved</td>
+                                <td align="center">
+                                    {% if solve == 0 %}
+                                    <a href="#">{{ solve }}</a>
+                                    {% endif %}
+                                    {% if solve != 0 %}
+                                    <a href="status?user_id={{ user.user_id }}&result=2">{{ solve }}</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Submit</td>
+                                <td align="center">
+                                    {% if submit == 0 %}
+                                    <a href="#">{{ submit }}</a>
+                                    {% endif %}
+                                    {% if submit != 0 %}
+                                    <a href="status?user_id={{ user.user_id }}">{{ submit }}</a>
+                                    {% endif %}
+                                    {% if login == True %}
+                                    <a href="archive?user_id={{ user.user_id }}" title="Get all the code you have submitted">Archive</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% if ac != 0 %}
+                            <tr>
+                                <td>AC</td>
+                                <td>
+                                    <!--{% if ac == 0 %}-->
+                                    <!--<a href="#">{{ ac }}</a>-->
+                                    <!--{% endif %}-->
+                                    <a href="status?user_id={{ user.user_id }}&result=2">{{ ac }}</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if pe != 0 %}
+                            <tr>
+                                <td>PE</td>
+                                <td>
+                                    <!--{% if pe == 0 %}-->
+                                    <!--<a href="#">{{ pe }}</a>-->
+                                    <!--{% endif %}-->
+                                    <a href="status?user_id={{ user.user_id }}&result=9">{{ pe }}</a>
+                                    <input type="hidden" id="PE">
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if wa != 0 %}
+                            <tr>
+                                <td>WA</td>
+                                <td align="center">
+                                    <!--{% if wa == 0 %}-->
+                                    <!--<a href="#">{{ wa }}</a>-->
+                                    <!--{% endif %}-->
+                                    <a href="status?user_id={{ user.user_id }}&result=5">{{ wa }}</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if tle != 0 %}
+                            <tr>
+                                <td>TLE</td>
+                                <td align="center">
+                                    <!--{% if tle == 0 %}-->
+                                    <!--<a href="#">{{ tle }}</a>-->
+                                    <!--{% endif %}-->
+                                    <a href="status?user_id={{ user.user_id }}&result=3">{{ tle }}</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if mle != 0 %}
+                            <tr>
+                                <td>MLE</td>
+                                <td align="center">
+                                    <!--{% if mle == 0 %}-->
+                                    <!--<a href="#">{{ mle }}</a>-->
+                                    <!--{% endif %}-->
+                                    <a href="status?user_id={{ user.user_id }}&result=4">{{ mle }}</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if ole != 0 %}
+                            <tr>
+                                <td>OLE</td>
+                                <td align="center">
+                                    <!--{% if ole == 0 %}-->
+                                    <!--<a href="#">{{ ole }}</a>-->
+                                    <!--{% endif %}-->
+                                    <a href="status?user_id={{ user.user_id }}&result=7">{{ ole }}</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if re != 0 %}
+                            <tr>
+                                <td>RE</td>
+                                <td align="center">
+                                    <!--{% if re == 0 %}-->
+                                    <!--<a href="#">{{ re }}</a>-->
+                                    <!--{% endif %}-->
+                                    <a href="status?user_id={{ user.user_id }}&result=6">{{ re }}</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% if ce != 0 %}
+                            <tr>
+                                <td>CE</td>
+                                <td align="center">
+                                    <!--{% if ce == 0 %}-->
+                                    <!--<a href="#">{{ ce }}</a>-->
+                                    <!--{% endif %}-->
+                                    <a href="status?user_id={{ user.user_id }}&result=8">{{ ce }}</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                    <div class="col-md-12" id="status" style="width: 420px; height: 300px;">
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-7">
+                <table>
+                    <tr><td align="center">Solved Problems List</td></tr>
+                    <tr>
+                        <td rowspan="14" align="left" valign="top" class="problemtd">
+                            {% for item in problemlist %}
+                            <a href="problem?id={{ item.problem_id }}">{{ item.problem_id }} </a>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+</body>
+</html>

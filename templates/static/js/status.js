@@ -60,3 +60,43 @@ function csrfSafeMethod(method) {
     // these HTTP methods do not require CSRF protection
     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
+//显示相似度
+$(document).ready(function()
+{
+     if($.cookie('power')=='A'||$.cookie('power')=='B'){
+         $(".sim").each(function () {
+             $(this).qtip({
+                content: {
+                    text:"loading...",
+                    ajax:{
+    //                    url: $(this).children().href,
+                        url: 'sim',
+                        type: 'GET',
+                        data: {s_id: $(this).parent().parent().children().eq(0).text()}
+                    },
+                    title:{
+                        text: 'sim',
+                        button:' '
+                    }
+                },
+                position: {
+    //                viewport: $(window)
+                    my: 'left center',
+                    at: 'right center'
+    //                target: $('.sim')
+                },
+                hide:{
+    //                event: true,
+    //                target: $('.sim'),
+    //                delay: 1000
+                    fixed: true,
+                    delay: 300
+                },
+                style: {
+                    classes: 'qtip-bootstrap qtip-shadow'
+
+                }//'qtip-wiki'
+            });
+        });
+     }
+});

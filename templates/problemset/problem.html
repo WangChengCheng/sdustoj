@@ -80,7 +80,9 @@
             <dd></dd>
         </dl>
         <div class="button">
-            <a id="submit" {% if islogin == True %}href="submit?c_id={{ contestid }}&p_id={{ problem.problem_id }}&l_id={{ language_id }}"{% endif %} class="btn">Submit</a>
+            <a class="btn" title="Who has SOLVED this Problem" href="problemstatistics?p_id={{ problem.problem_id}}">Statistics</a>
+            <a href="problems/download/{{ problem.problem_id }}.pdf?problem_id={{ problem.problem_id }}" title="Download this problem in PDF" class="btn">Download</a>
+            <a title="Solve this problem" id="submit" {% if islogin == True %}href="submit?c_id={{ contestid }}&p_id={{ problem.problem_id }}&l_id={{ language_id }}"{% endif %} class="btn">Submit</a>
             {% if islogin != True %}
                 <a class="red" href="signin">请先登录!</a>
             {% endif %}

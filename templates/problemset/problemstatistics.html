@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="static/common/css/reset.css">
+    <link rel="stylesheet" href="static/common/css/common.css">
+    <link rel = "Shortcut Icon" href="static/img/school.png">
+    <link rel="stylesheet" href="static/css/problem.css">
+    <link rel="stylesheet" href="static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/common/css/bootstrap.css">
+    <script language="javascript" src="static/js/jquery.min.js"></script>
+    <script language="javascript" src="static/js/jquery.cookie.js"></script>
+    <script language="javascript" src="static/js/login.js"></script>
+    <script language="javascript" src="static/common/js/notice.js"></script>
+    <!-- 引入echarts.js -->
+    <script language="javascript" src="static/js/echarts.min.js"></script>
+    <script language="javascript" src="static/js/problemstatistics.js"></script>
+    <title>Problem Status</title>
+</head>
+<body>
+<!--headnav-->
+<header class="head">
+    <div class="common_Container">
+        <nav class="headnav">
+            <a href="index"><h1 class="headnavalltitle">SDUSTOJ</h1></a>
+            <ul class="headnavul clearfix">
+                <li class="headnavli"> <a href="/" class="headnavtitle">Home</a></li>
+                <li class="headnavli"> <a href="webboard" class="headnavtitle">Web Board</a></li>
+                <li class="headnavli"> <a href="problemset" class="headnavtitle  headnavtitleactive">ProblemSet</a></li>
+                <li class="headnavli"> <a href="status" class="headnavtitle">Status</a></li>
+                <li class="headnavli"> <a href="ranklist" class="headnavtitle">Ranklist</a></li>
+                <li class="headnavli"> <a href="contestlist" class="headnavtitle">Contest</a></li>
+                <li class="headnavli"> <a href="faq" class="headnavtitle">F.A.Qs</a></li>
+            </ul>
+            <div class="headnavactions">
+                <a href="signup" class="headnavtitle">Sign up</a>
+                <a href="signin" class="headnavtitle">Sign in</a>
+            </div>
+        </nav>
+    </div>
+</header>
+<!--picinfo-->
+<div class="topinfo scroolPic">
+    <div class="common_Container">
+        <div class="topinfoleft topinfocommon">
+            <h1 class="toptitle">山东科技大学OnlineJudge</h1>
+        </div>
+    </div>
+</div>
+<!--html代码 head标签中需要引入echarts.js-->
+<div class="container">
+    <div class="problemtitle">
+        <h1>
+            <a href="problem?id={{ problem_info.problem_id }}">
+                {{ problem_info.problem_id }}
+            </a> -- {{ problem_info.title}}
+        </h1>
+    </div>
+    <br>
+    <br>
+    <div class="row">
+        <!--解答结果统计 DOM-->
+        <div class="col-lg-6 col-lg-offset-1"
+             id="submit_status"
+             style="width: 420px; height: 300px;">
+        </div>
+        <!--使用的编程语言统计 DOM-->
+        <div class="col-lg-6 col-lg-offset-1"
+             id="lang_status"
+             style="width: 420px; height: 300px;">
+        </div>
+    </div>
+</div>
+
+<!-- status DOM -->
+<!--<div id="lang_status" style="width: 400px; height: 300px;"></div>-->
+<!--<div id="submit_status" style="width: 400px; height: 300px;"></div>-->
+<input type="hidden" id="lang_C" value="{{count_info.C}}" />
+<input type="hidden" id="lang_CPP" value="{{count_info.CPP}}" />
+<input type="hidden" id="lang_Java" value="{{count_info.Java}}" />
+<input type="hidden" id="AC" value="{{count_info.AC}}" />
+<input type="hidden" id="WA" value="{{count_info.WA}}" />
+<input type="hidden" id="Waiting" value="{{count_info.Waiting}}" />
+<input type="hidden" id="TLE" value="{{count_info.TLE}}" />
+<input type="hidden" id="MLE" value="{{count_info.MLE}}" />
+<input type="hidden" id="RE" value="{{count_info.RE}}" />
+<input type="hidden" id="OL" value="{{count_info.OL}}" />
+<input type="hidden" id="CE" value="{{count_info.CE}}" />
+<input type="hidden" id="PE" value="{{count_info.PE}}" />
+<input type="hidden" id="SE" value="{{count_info.SE}}" />
+<input type="hidden" id="Judging" value="{{count_info.Judging}}" />
+<input type="hidden" id="sim" value="{{count_info.sim}}" />
+
+{% include 'base/footer.html' %}
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SDUSTOnlineJudge</title>
+    <link rel="stylesheet" href="static/common/css/reset.css">
+    <link rel="stylesheet" href="static/common/css/common.css">
+    <link rel="stylesheet" href="static/css/user.css">
+    <link rel = "Shortcut Icon" href="static/img/school.png">
+    <script language="javascript" src="static/js/jquery.min.js"></script>
+    <script language="javascript" src="static/js/jquery.cookie.js"></script>
+    <script language="javascript" src="static/js/login.js"></script>
+    <script language="javascript" src="static/js/user.js"></script>
+    <script language="javascript" src="static/common/js/notice.js"></script>
+    <!-- 引入echarts.js -->
+    <script language="javascript" src="static/js/echarts.min.js"></script>
+
+</head>
+<body>
+<header class="head">
+    <div class="common_Container">
+        <nav class="headnav">
+            <a href="index"><h1 class="headnavalltitle">SDUSTOJ</h1></a>
+            <ul class="headnavul clearfix">
+                <li class="headnavli"> <a href="/" class="headnavtitle headnavtitleactive">Home</a></li>
+                <li class="headnavli"> <a href="webboard" class="headnavtitle">Web Board</a></li>
+                <li class="headnavli"> <a href="problemset" class="headnavtitle">ProblemSet</a></li>
+                <li class="headnavli"> <a href="status" class="headnavtitle">Status</a></li>
+                <li class="headnavli"> <a href="ranklist" class="headnavtitle">Ranklist</a></li>
+                <li class="headnavli"> <a href="contestlist" class="headnavtitle">Contest</a></li>
+                <li class="headnavli"> <a href="faq" class="headnavtitle">F.A.Qs</a></li>
+            </ul>
+            <div class="headnavactions">
+                <a href="signup" class="headnavtitle">Sign up</a>
+                <a href="signin" class="headnavtitle">Sign in</a>
+            </div>
+        </nav>
+    </div>
+</header>
+<div class="topinfo scroolPic">
+    <div class="common_Container">
+        <div class="topinfoleft topinfocommon">
+            <h1 class="toptitle">山东科技大学OnlineJudge</h1>
+        </div>
+    </div>
+</div>
+<!--
++-----------+-----------+-----------------------+
+| status_id | result_id | status                |
++-----------+-----------+-----------------------+
+|         1 |         0 | Waiting               |
+|         2 |         1 | Accepted              |
+|         3 |         2 | Time Limit Exceeded   |
+|         4 |         3 | Memory Limit Exceeded |
+|         5 |         4 | Wrong Answer          |
+|         6 |         5 | Runtime Error         |
+|         7 |         6 | Output Limit          |
+|         8 |         7 | Compile Error         |
+|         9 |         8 | Presentation Error    |
+|        10 |        11 | System Error          |
+|        11 |        12 | Judging               |
++-----------+-----------+-----------------------+
+-->
+<div class="usercontainer">
+    <div class="common_Container">
+        <h2 class="username">{% if login == True %}<a href="useredit">(Modify Info)</a>{% endif %}{{ user.user_id }}--{{ user.nick }}</h2>
+        <table class="usertable">
+            <tr><td width="15%">No.</td><td width="25%" align="center">4</td><td width="70%" align="center">Solved Problems List</td></tr>
+            <tr>
+                <td>Solved</td>
+                <td align="center">
+                {% if solve == 0 %}
+                <a href="#">{{ solve }}</a>
+                {% endif %}
+                {% if solve != 0 %}
+                <a href="status?user_id={{ user.user_id }}&result=2">{{ solve }}</a>
+                {% endif %}
+                </td>
+                <td rowspan="14" align="left" valign="top" class="problemtd">
+                    {% for item in problemlist %}
+                    <a href="problem?id={{ item.problem_id }}">{{ item.problem_id }} </a>
+                    {% endfor %}
+
+                </td>
+            </tr>
+            <tr>
+                <td>Submit</td>
+                <td align="center">
+                    {% if submit == 0 %}
+                    <a href="#">{{ submit }}</a>
+                    {% endif %}
+                    {% if submit != 0 %}
+                    <a href="status?user_id={{ user.user_id }}">{{ submit }}</a>
+                    {% endif %}
+                    {% if login == True %}
+                    <a href="archive?user_id={{ user.user_id }}" title="Get all the code you have submitted">Archive</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% if ac != 0 %}
+            <tr>
+                <td>AC</td>
+                <td>
+                    <!--{% if ac == 0 %}-->
+                    <!--<a href="#">{{ ac }}</a>-->
+                    <!--{% endif %}-->
+                    <a href="status?user_id={{ user.user_id }}&result=2">{{ ac }}</a>
+                </td>
+            </tr>
+            {% endif %}
+            {% if pe != 0 %}
+            <tr>
+                <td>PE</td>
+                <td>
+                    <!--{% if pe == 0 %}-->
+                    <!--<a href="#">{{ pe }}</a>-->
+                    <!--{% endif %}-->
+                    <a href="status?user_id={{ user.user_id }}&result=9">{{ pe }}</a>
+                    <input type="hidden" id="PE">
+                </td>
+            </tr>
+            {% endif %}
+            {% if wa != 0 %}
+            <tr>
+                <td>WA</td>
+                <td align="center">
+                    <!--{% if wa == 0 %}-->
+                    <!--<a href="#">{{ wa }}</a>-->
+                    <!--{% endif %}-->
+                    <a href="status?user_id={{ user.user_id }}&result=5">{{ wa }}</a>
+                </td>
+            </tr>
+            {% endif %}
+            {% if tle != 0 %}
+            <tr>
+                <td>TLE</td>
+                <td align="center">
+                    <!--{% if tle == 0 %}-->
+                    <!--<a href="#">{{ tle }}</a>-->
+                    <!--{% endif %}-->
+                    <a href="status?user_id={{ user.user_id }}&result=3">{{ tle }}</a>
+                </td>
+            </tr>
+            {% endif %}
+            {% if mle != 0 %}
+            <tr>
+                <td>MLE</td>
+                <td align="center">
+                    <!--{% if mle == 0 %}-->
+                    <!--<a href="#">{{ mle }}</a>-->
+                    <!--{% endif %}-->
+                    <a href="status?user_id={{ user.user_id }}&result=4">{{ mle }}</a>
+                </td>
+            </tr>
+            {% endif %}
+            {% if ole != 0 %}
+            <tr>
+                <td>OLE</td>
+                <td align="center">
+                    <!--{% if ole == 0 %}-->
+                    <!--<a href="#">{{ ole }}</a>-->
+                    <!--{% endif %}-->
+                    <a href="status?user_id={{ user.user_id }}&result=7">{{ ole }}</a>
+                </td>
+            </tr>
+            {% endif %}
+            {% if re != 0 %}
+            <tr>
+                <td>RE</td>
+                <td align="center">
+                    <!--{% if re == 0 %}-->
+                    <!--<a href="#">{{ re }}</a>-->
+                    <!--{% endif %}-->
+                    <a href="status?user_id={{ user.user_id }}&result=6">{{ re }}</a>
+                </td>
+            </tr>
+            {% endif %}
+            {% if ce != 0 %}
+            <tr>
+                <td>CE</td>
+                <td align="center">
+                    <!--{% if ce == 0 %}-->
+                    <!--<a href="#">{{ ce }}</a>-->
+                    <!--{% endif %}-->
+                    <a href="status?user_id={{ user.user_id }}&result=8">{{ ce }}</a>
+                </td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td>
+                    Statistics
+                </td>
+                <td style="width: 250px; height: 350px;">
+                        <div id="status" style="width: 240px; height: 300px;"></div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+{% include 'base/footer.html' %}
+<script src="static/js/user.js"></script>
+</body>
+</html>

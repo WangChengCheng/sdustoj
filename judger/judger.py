@@ -16,8 +16,12 @@ import config
 import lorun
 import threading
 import MySQLdb
+import re
 from db import run_sql
 from Queue import Queue
+
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 def clean_work_dir(solution_id):
     '''清理word目录，删除临时文件'''
@@ -29,8 +33,9 @@ def create_work_dir(solution_id):
     dir_name = os.path.join(config.work_dir, str(solution_id))
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
-        
-#get the count about problem data in file from problem dir
+
+
+# get the count about problem data in file from problem dir
 def get_data_count(problem_id):
     '''获得测试数据的个数信息'''
     full_path = os.path.join(config.data_dir, str(problem_id))
@@ -46,19 +51,23 @@ def get_data_count(problem_id):
     return count
 
 
-#get problem time_limit and memory_limit from db according to problem_id
+# get problem time_limit and memory_limit from db according to problem_id
 def get_problem_limit(problem_id):
-    sql="select time_limit,memory_limit from problem where problem_id = "+str(problem_id)
-    result=run_sql(sql)
-    return result[0][0],result[0][1]
+    sql = "select time_limit,memory_limit from problem where problem_id = " + str(problem_id)
+    result = run_sql(sql)
+    return result[0][0], result[0][1]
 
-#update judge result according to solution_id
+
+# update judge result according to solution_id
 def update_result(pi):
-    sql="update solution set time = "+str(pi['take_time'])+",memory = "+str(pi['take_memory'])+",result="+str(pi['result'])+" where solution_id ="+str(pi['solution_id'])+";"
+    sql = "update solution set time = " + str(pi['take_time']) + ",memory = " + str(
+        pi['take_memory']) + ",result=" + str(pi['result']) + " where solution_id =" + str(pi['solution_id']) + ";"
     run_sql(sql)
-    if str(pi['result'])== '1':
-	sql="update problem set accepted =accepted +1 where problem_id ="+str(pi['problem_id'])
-	run_sql(sql)
+    if str(pi['result']) == '1':
+        sql = "update problem set accepted =accepted +1 where problem_id =" + str(pi['problem_id'])
+        run_sql(sql)
+
+
 def run(problem_id, solution_id, language, data_count, user_id):
     low_level()
     '''获取程序执行时间和内存'''
@@ -90,6 +99,7 @@ def run(problem_id, solution_id, language, data_count, user_id):
         program_info['result'] = result_code["Runtime Error"]
         return program_info
     compile_result = compile(solution_id, language)
+    logging.info("compile_result: %s" % compile_result)  # <==>
     if compile_result is False:  # 编译错误
         program_info['result'] = result_code["Compile Error"]
         return program_info
@@ -107,10 +117,11 @@ def run(problem_id, solution_id, language, data_count, user_id):
         language)
     logging.debug(result)
     return result
-	
+
+
 def check_dangerous_code(solution_id, language):
     if language in ['python2', 'python3']:
-        code = file(config.work_dir+'/%s/main.py' % solution_id).readlines()
+        code = file(config.work_dir + '/%s/main.py' % solution_id).readlines()
         support_modules = [
             're',  # 正则表达式
             'sys',  # sys.stdin
@@ -124,7 +135,7 @@ def check_dangerous_code(solution_id, language):
             'random',  # 随机数
             'itertools',  # 迭代函数
             'functools',
-            #Higher order functions and operations on callable objects
+            # Higher order functions and operations on callable objects
             'operator',  # 函数操作
             'readline',  # 读文件
             'json',  # 解析json
@@ -146,19 +157,19 @@ def check_dangerous_code(solution_id, language):
         return True
     if language in ['gcc', 'g++']:
         try:
-            code = file(config.work_dir+'/%s/main.c' % solution_id).read()
+            code = file(config.work_dir + '/%s/main.c' % solution_id).read()
         except:
-            code = file(config.work_dir+'/%s/main.cpp' % solution_id).read()
+            code = file(config.work_dir + '/%s/main.cpp' % solution_id).read()
         if code.find('system') >= 0:
             return False
         return True
-#    if language == 'java':
-#        code = file('/work/%s/Main.java'%solution_id).read()
-#        if code.find('Runtime.')>=0:
-#            return False
-#        return True
+    #    if language == 'java':
+    #        code = file('/work/%s/Main.java'%solution_id).read()
+    #        if code.find('Runtime.')>=0:
+    #            return False
+    #        return True
     if language == 'go':
-        code = file(config.work_dir+'/%s/main.go' % solution_id).read()
+        code = file(config.work_dir + '/%s/main.go' % solution_id).read()
         danger_package = [
             'os', 'path', 'net', 'sql', 'syslog', 'http', 'mail', 'rpc', 'smtp', 'exec', 'user',
         ]
@@ -167,10 +178,13 @@ def check_dangerous_code(solution_id, language):
                 return False
         return True
 
-def update_compile_info(solution_id,err):
-    sql = "insert into compileinfo(solution_id,error) values ("+str(solution_id)+",'"+str(err)+"');"
+
+def update_compile_info(solution_id, err):
+    sql = "insert into compileinfo(solution_id,error) values (" + str(solution_id) + ",'" + str(err) + "')" \
+           "ON DUPLICATE KEY UPDATE error = '" + str(err) + "';"
     run_sql(sql)
-    
+
+
 def compile(solution_id, language):
     low_level()
     '''将程序编译成可执行文件'''
@@ -191,7 +205,7 @@ def compile(solution_id, language):
     }
     if language not in build_cmd.keys():
         return False
-    p = subprocess.Popen(
+    p = subprocess.Popen(  # 进行编译
         build_cmd[language],
         shell=True,
         cwd=dir_work,
@@ -209,8 +223,8 @@ def compile(solution_id, language):
     update_compile_info(solution_id, err + out)  # 编译失败,更新题目的编译错误信息
     dblock.release()
     return False
-	
-	
+
+
 def get_code(solution_id, problem_id, pro_lang):
     '''从数据库获取代码并写入work目录下对应的文件'''
     file_name = {
@@ -226,7 +240,7 @@ def get_code(solution_id, problem_id, pro_lang):
         'python3': 'main.py',
         "haskell": "main.hs"
     }
-    select_code_sql = "select source from sdustoj.source_code where solution_id  = "+str(solution_id)
+    select_code_sql = "select source from sdustoj.source_code where solution_id  = " + str(solution_id)
     feh = run_sql(select_code_sql)
     if feh is not None:
         try:
@@ -260,7 +274,9 @@ def get_code(solution_id, problem_id, pro_lang):
         f = codecs.open(real_path, 'w')
         try:
             f.write(code)
-        except:
+        except OSError as e:
+            logging.info("%s" % code)
+            logging.error(e)
             logging.error("%s not write code to file" % solution_id)
             f.close()
             return False
@@ -269,7 +285,132 @@ def get_code(solution_id, problem_id, pro_lang):
         logging.error(e)
         return False
     return True
-	
+
+
+# Author : Michael
+def get_ac_code_to_sim(solution_id, problem_id, language):
+    logging.info("--------------start get_ac_code_to_sim---------------")
+    file_ext = {
+        "gcc": ".c",
+        "g++": ".cpp",
+        "java": ".java",
+        'ruby': ".rb",
+        "perl": ".pl",
+        "pascal": ".pas",
+        "go": ".go",
+        "lua": ".lua",
+        'python2': '.py',
+        'python3': '.py',
+        "haskell": ".hs"
+    }
+    # <==> create the dir for solution_id to SIM
+    try:
+        sim_path = os.path.join(config.sim_dir, str(problem_id), "ac")  # /usr/local/sdustoj/sim_dir/problem_id/ac/
+
+        low_level()
+        os.makedirs(sim_path)
+        logging.info("makedirs successful")
+    except OSError as e:
+        if str(e).find("exist") > 0:  # 文件夹已经存在
+            pass
+        else:
+            logging.error(e)
+            return False
+
+    sql_get_code = "SELECT solution_id,source FROM sdustoj.source_code WHERE solution_id = " + str(solution_id)
+    feh = run_sql(sql_get_code)  # get solution_id's code and other solutions' codes needed to compare
+    # logging.info("feh --%s" % feh)
+    if feh is not None:
+        try:
+            s_id = feh[0][0]  # solution_id of every code
+            code = feh[0][1]
+            file_name = str(s_id) + file_ext[language]  # file name of every code
+            logging.info("%s" % file_name)
+            try:
+                real_path = os.path.join(config.sim_dir, str(problem_id), "ac", file_name)
+            except OSError as e:
+                logging.error(e)
+                return False
+            try:
+                low_level()
+                f = codecs.open(real_path, 'w')
+                try:
+                    f.write(code)
+                except:
+                    logging.error("code of %s isn't written into file" % s_id)
+                    f.close()
+                    return False
+                f.close()
+            except OSError as e:
+                logging.error(e)
+                return False
+        except:
+            logging.error("cannot get codes of runid %s to SIM" % solution_id)
+            return False
+        return True
+
+
+# Michael
+def get_sim(solution_id, language, problem_id):
+    file_ext = {
+        "gcc": ".c",
+        "g++": ".cpp",
+        "java": ".java",
+        'ruby': ".rb",
+        "perl": ".pl",
+        "pascal": ".pas",
+        "go": ".go",
+        "lua": ".lua",
+        'python2': '.py',
+        'python3': '.py',
+        "haskell": ".hs"
+    }
+    # if language == "g++":
+    #     language = "gcc"
+    file_name = str(solution_id) + file_ext[language]
+    src_path = os.path.join(config.sim_dir, str(problem_id), 'ac', file_name)
+    sim = subprocess.Popen('sim.sh %s %d' % (src_path, problem_id), shell=True, stdout=subprocess.PIPE)
+    result = ''
+    while sim.poll() is None:
+        line = sim.stdout.readline()
+        # print line
+        result = result + line
+    # print result
+    if result != '' and result is not None:
+        result_num = re.findall(r'\d+', result)  # 提取出所有数字[sim_1, sim_s_id_1, sim_2, sim_s_id_2,...]
+        print result_num
+        if len(result_num) != 0:  # 更改solution表的is_sim字段值
+            sql_issim = "UPDATE solution SET is_sim = 1 WHERE solution_id = " + str(solution_id)
+            dblock.acquire()
+            run_sql(sql_issim)
+            dblock.release()
+        sql = "INSERT INTO sdustoj.sim(s_id, sim, sim_s_id) VALUES "
+        # max_sim = -1
+        # max_sim_s_id = -1
+        for i in range(0, len(result_num), 2):
+            sql += "(" + str(solution_id) + "," + str(result_num[i]) + "," + str(result_num[i + 1]) + "), "
+            # if int(result_num[i]) > max_sim:
+            #     max_sim = int(result_num[i])
+            #     max_sim_s_id = int(result_num[i+1])
+        sql += "(-1,-1,-1) "  # 作用：消除for循环中sql最后的逗号
+        sql += "ON DUPLICATE KEY UPDATE sim = VALUES(sim)"
+        print sql
+        dblock.acquire()
+        # update_sim(solution_id, max_sim_s_id, max_sim)  # sim is written into DB
+        run_sql(sql)
+        dblock.release()
+
+
+def update_sim(s_id, sim_s_id, sim):
+    # sql功能：存在该条记录时则更新该记录，不存在则插入;仅仅插入会导致rejudge时出错
+    sql = "INSERT INTO sdustoj.sim(s_id, sim_s_id, sim)" \
+          " VALUES (" + str(s_id) + ", " + str(sim_s_id) + ", " + str(sim) + \
+          ") ON DUPLICATE KEY UPDATE sim_s_id = " + str(sim_s_id) + ", sim = " + str(sim) + ";"
+    # sql_for_dev = "UPDATE sdustoj.sim " \
+    #               "SET sim_s_id = " + str(sim_s_id) + ", sim = " + str(sim) + " WHERE s_id = " + str(s_id) + ";"
+    run_sql(sql)
+
+
 def judge(solution_id, problem_id, data_count, time_limit,
           mem_limit, program_info, result_code, language):
     low_level()
@@ -280,13 +421,7 @@ def judge(solution_id, problem_id, data_count, time_limit,
         time_limit = time_limit * 2
         mem_limit = mem_limit * 2
     for i in range(data_count):
-        ret = judge_one_mem_time(
-            solution_id,
-            problem_id,
-            i,
-            time_limit + 10,
-            mem_limit,
-            language)
+        ret = judge_one_mem_time(solution_id, problem_id, i, time_limit + 10, mem_limit, language)
         if ret == False:
             continue
         if ret['result'] == 5:
@@ -320,22 +455,22 @@ def judge(solution_id, problem_id, data_count, time_limit,
     program_info['take_time'] = max_time
     program_info['take_memory'] = max_mem
     return program_info
-	
-	
-def judge_one_mem_time( solution_id, problem_id, data_num, time_limit, mem_limit, language):
+
+
+def judge_one_mem_time(solution_id, problem_id, data_num, time_limit, mem_limit, language):
     low_level()
     '''评测一组数据'''
-    input_path = os.path.join(
-        config.data_dir, str(problem_id), 'data%s.in' %
-        data_num)
+    logging.info("评测一组数据")  # <==>
+    input_path = os.path.join(config.data_dir, str(problem_id), 'data%s.in' % data_num)
     try:
         input_data = file(input_path)
-    except:
+        logging.info("judge_one_mem_time.input_data")  # <==>
+    except Exception as e:
+        logging.info(e)  # <==>System Error==>find error is that the 'X' of the 'dataX.in' is from 0,not 1
         return False
-    output_path = os.path.join(
-        config.work_dir, str(solution_id), 'out%s.txt' %
-        data_num)
+    output_path = os.path.join(config.work_dir, str(solution_id), 'out%s.txt' % data_num)
     temp_out_data = file(output_path, 'w')
+    logging.info("finish temp_out_data")  # <==>
     if language == 'java':
         cmd = 'java -cp %s Main' % (
             os.path.join(config.work_dir,
@@ -381,11 +516,12 @@ def judge_one_mem_time( solution_id, problem_id, data_num, time_limit, mem_limit
         'memorylimit': mem_limit,  # in KB
     }
     low_level()
-    rst = lorun.run(runcfg)
+    rst = lorun.run(runcfg)  # 调用lorun插件
     input_data.close()
     temp_out_data.close()
     logging.debug(rst)
     return rst
+
 
 def judge_result(problem_id, solution_id, data_num):
     low_level()
@@ -393,17 +529,17 @@ def judge_result(problem_id, solution_id, data_num):
     logging.debug("Judging result")
     correct_result = os.path.join(
         config.data_dir, str(problem_id), 'data%s.out' %
-        data_num)
+                                          data_num)
     user_result = os.path.join(
         config.work_dir, str(solution_id), 'out%s.txt' %
-        data_num)
+                                           data_num)
     try:
         correct = file(
             correct_result).read(
-            ).replace(
-                '\r',
-                '').rstrip(
-                )  # 删除\r,删除行末的空格和换行
+        ).replace(
+            '\r',
+            '').rstrip(
+        )  # 删除\r,删除行末的空格和换行
         user = file(user_result).read().replace('\r', '').rstrip()
     except:
         return False
@@ -414,6 +550,14 @@ def judge_result(problem_id, solution_id, data_num):
     if correct in user:  # 输出多了
         return "Output limit"
     return "Wrong Answer"  # 其他WA
+
+
+'''ac后，更改users表中的accepted值'''
+def update_users_attrib_ac(user_id):
+    sql = "UPDATE sdustoj.users SET accepted = accepted + 1 WHERE user_id = '" + str(user_id) + "';"
+    print sql
+    run_sql(sql)
+
 
 def worker():
     '''工作线程，循环扫描队列，获得评判任务并执行'''
@@ -426,6 +570,7 @@ def worker():
         language = task['pro_lang']
         user_id = task['user_id']
         data_count = get_data_count(task['problem_id'])  # 获取测试数据的个数
+        print data_count  # <==>
         logging.info("judging %s" % solution_id)
         result = run(
             problem_id,
@@ -433,19 +578,24 @@ def worker():
             language,
             data_count,
             user_id)  # 评判
-        logging.info(
-            "%s result %s" % (
-                result[
-            'solution_id'],
-                result[
-                    'result']))
-        update_solution_status(result['solution_id'],result['result'])
+        logging.info("result:%s %s" % (result, language))
+        logging.info("%s result %s" % (result['solution_id'], result['result']))
+
+        # if AC and sim_enable
+        if result['result'] == 1:
+            update_users_attrib_ac(user_id)  # sdustoj.users.accepted +1
+            get_ac_code_to_sim(result['solution_id'], result['problem_id'], language)  # write AC code to file for SIM
+        if config.sim_enable == 1:
+            get_sim(solution_id, language, problem_id)
+
+        update_solution_status(result['solution_id'], result['result'])
         dblock.acquire()
         update_result(result)  # 将结果写入数据库
         dblock.release()
         if config.auto_clean:  # 清理work目录
             clean_work_dir(result['solution_id'])
         q.task_done()  # 一个任务完成
+
 
 def put_task_into_queue():
     '''循环扫描数据库,将任务添加到队列'''
@@ -456,8 +606,9 @@ def put_task_into_queue():
         time.sleep(0.2)  # 延时0.2秒,防止因速度太快不能获取代码
         for i in data:
             solution_id, problem_id, user_id, contest_id, pro_lang = i
-            language_list = [ "gcc","g++","java", "ruby","perl","pascal","go","lua","python2","python3","haskell"]
-            pro_lang=language_list[pro_lang]
+            language_list = ["gcc", "g++", "java", "ruby", "perl", "pascal", "go", "lua", "python2", "python3",
+                             "haskell"]
+            pro_lang = language_list[pro_lang]
             dblock.acquire()
             ret = get_code(solution_id, problem_id, pro_lang)
             dblock.release()
@@ -482,21 +633,25 @@ def put_task_into_queue():
             }
             q.put(task)
             dblock.acquire()
-            update_solution_status(solution_id,12)
+            update_solution_status(solution_id, 12)
             dblock.release()
         time.sleep(0.5)
-		
-def update_solution_status(solution_id,value):
+
+
+def update_solution_status(solution_id, value):
     if value == None:
-	value = -1
-    sql = "update solution set result= "+str(value)+" where solution_id = "+str(solution_id)+";"
+        value = -1
+    sql = "update solution set result= " + str(value) + " where solution_id = " + str(solution_id) + ";"
     run_sql(sql)
+
 
 def low_level():
     try:
         os.setuid(int(os.popen("id -u %s" % "nobody").read()))
     except:
         pass
+
+
 try:
     # 降低程序运行权限，防止恶意代码
     os.setuid(int(os.popen("id -u %s" % "nobody").read()))
@@ -550,12 +705,11 @@ def start_protect():
 def main():
     low_level()
     logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s --- %(message)s',)
+                        format='%(asctime)s --- %(message)s', )
     start_get_task()
     start_work_thread()
     start_protect()
 
+
 if __name__ == '__main__':
     main()
-
-
