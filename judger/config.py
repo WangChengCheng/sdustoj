@@ -7,7 +7,7 @@ queue_size = 4
 #数据库地址
 db_host = "127.0.0.1"
 #数据库用户名
-db_user = "root"
+db_user = "sdustoj"
 #数据库密码
 db_password = "root"
 #数据库名字
