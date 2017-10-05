@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="../static/admin/common/css/font-awesome.min.css"/>
+    <link rel="stylesheet" href="../static/admin/common/css/base.css"/>
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css"/>
+    <link rel="Shortcut Icon" href="../static/img/school.png">
+
+    <link rel="stylesheet" type="text/css" href="../static/common/css/xcConfirm.css"/>
+
+    <script src="../static/admin/common/js/jquery-2.0.3.min.js"></script>
+
+    <link rel="stylesheet" href="../static/css/jquery.bootgrid.css"/>
+    <script src="../static/js/jquery.bootgrid.js"></script>
+    <script src="../static/js/jquery.bootgrid.fa.js"></script>
+
+</head>
+<body>
+<table id="grid-data" data-toggle="bootgrid" class="table table-condensed table-hover table-striped">
+    <thead>
+        <tr>
+            <th data-column-id="id" data-type="numeric" data-identifier="true">ID</th>
+            <th data-column-id="sender">Sender</th>
+            <th data-column-id="received" data-order="desc">Received</th>
+            <th data-column-id="link" data-formatter="link" data-sortable="false">Link</th>
+        </tr>
+    </thead>
+</table>
+<script type="application/javascript">
+    $("#grid-data").bootgrid({
+    ajax: true,
+    post: function ()
+    {
+        /* To accumulate custom parameter with the request object */
+        return {
+            id: "b0df282a-0d67-40e5-8558-c9e93b7befed"
+        };
+    },
+    url: "/api/data/basic",
+    formatters: {
+        "link": function(column, row)
+        {
+            return "<a href=\"#\">" + column.id + ": " + row.id + "</a>";
+        }
+    }
+});
+</script>
+</body>
+</html>

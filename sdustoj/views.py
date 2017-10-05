@@ -1124,6 +1124,15 @@ def admin_userlist(request):
     return render_to_response('admin/userlist.html', {'users': users, 'cur_page': page_num, 'totalpage': page[-1]}, c)
 
 
+'''
+render the admin teaching
+'''
+
+
+def admin_teaching(request):
+    c = RequestContext(request)
+
+    return render_to_response('admin/teaching.html', {}, c)
 # ---------------
 '''
 deal with login out port
@@ -1466,3 +1475,16 @@ def clean_archive_dir(user_id):
     tgz_name = os.path.join(config.archive_dir, "%s.tgz" % user_id)
     if os.path.exists(tgz_name):
         os.remove(tgz_name)
+
+
+# TEST!!!!
+@csrf_protect
+def test_data(request):
+    c = RequestContext(request)
+    return render_to_response('admin/data', c)
+
+
+@csrf_protect
+def admin_test(request):
+    c = RequestContext(request)
+    return render_to_response('admin/test.html', c)

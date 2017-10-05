@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>SDUSTOJ</title>
+    <link rel="stylesheet" href="../static/admin/common/css/font-awesome.min.css"/>
+    <link rel="stylesheet" href="../static/admin/common/css/base.css"/>
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css"/>
+    <link rel="Shortcut Icon" href="../static/img/school.png">
+
+    <link rel="stylesheet" type="text/css" href="../static/common/css/xcConfirm.css"/>
+
+    <script src="../static/admin/common/js/jquery-2.0.3.min.js"></script>
+    <script src="../static/admin/common/js/jquery.session.js"></script>
+    <script src="../static/admin/common/js/base.js"></script>
+    <script language="javascript" src="../static/js/jquery.cookie.js"></script>
+    <script src="../static/common/js/xcConfirm.js" type="text/javascript" charset="utf-8"></script>
+
+
+    <link rel="stylesheet" href="../static/css/jquery.bootgrid.css"/>
+    <script src="../static/js/jquery.bootgrid.js"></script>
+    <script src="../static/js/jquery.bootgrid.fa.js"></script>
+
+</head>
+<body>
+<div class="maxwrap">
+    <!--头部-->
+    {% include 'base/adminhead.html' %}
+    <!--<script src="admin/common/js/comhead.js"></script>-->
+    <!--左边栏-->
+    <script src="../static/admin/common/js/commenu.js"></script>
+    <!--内容区域-->
+    <div class="maincontainer">
+        <!--面包屑导航-->
+        <div class="breadcrumbs">
+            <ul class="breadcrumb">
+                <li><i class=" fa fa-home home-icon"></i><a href="#">Home</a></li>
+                <li class="breadcrumbactive">SDUSTOJ</li>
+            </ul>
+        </div>
+        <!--内容区域-->
+        <div class="container">
+            <table id="grid-selection" class="table table-condensed table-hover table-striped">
+                <thead>
+                    <tr>
+                        <th data-column-id="id" data-type="numeric" data-identifier="true">ID</th>
+                        <th data-column-id="sender">Sender</th>
+                        <th data-column-id="received" data-order="desc">Received</th>
+                        <th data-column-id="link" data-formatter="link" data-sortable="false">Link</th>
+                    </tr>
+                </thead>
+            </table>
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $.ajaxSetup({
+      beforeSend: function(xhr, settings){
+          var csrftoken = $.cookie('csrftoken');
+          xhr.setRequestHeader("X-CSRFToken", csrftoken);
+      }
+    });
+    $("#grid-selection").bootgrid({
+        ajax: true,
+        post: function ()
+        {
+            /* To accumulate custom parameter with the request object */
+            return {
+                id: "b0df282a-0d67-40e5-8558-c9e93b7befed"
+            };
+        },
+        url: "data",
+        selection: true,
+        multiSelect: true,
+        formatters: {
+            "link": function(column, row)
+            {
+                return "<a href=\"#\">" + column.id + ": " + row.id + "</a>";
+            }
+        }
+    }).on("selected.rs.jquery.bootgrid", function(e, rows)
+    {
+        var rowIds = [];
+        for (var i = 0; i < rows.length; i++)
+        {
+            rowIds.push(rows[i].id);
+        }
+        alert("Select: " + rowIds.join(","));
+    }).on("deselected.rs.jquery.bootgrid", function(e, rows)
+    {
+        var rowIds = [];
+        for (var i = 0; i < rows.length; i++)
+        {
+            rowIds.push(rows[i].id);
+        }
+        alert("Deselect: " + rowIds.join(","));
+    });
+</script>
+</body>
+</html>

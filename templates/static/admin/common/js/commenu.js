@@ -56,10 +56,13 @@ document.writeln("            </li>");
         document.writeln("                    <li class=\"menuli\"><a href=\"rejudge\">Rejudge</a></li> <!--将某一场比赛或者某一个题的代码全部rejudge-->");
         document.writeln("                </ul>");
         document.writeln("            </li>");
-        document.writeln("        </ul>");
-        document.writeln("    </div>");
-    }
 
+    }
+    document.writeln("            <li class=\"menuli\">");
+    document.writeln("                <a href=\"teaching\"  target=\"_Blank\"><i class=\"fa fa-users fatest\"></i>教学关系</a>");
+    document.writeln("            </li>");
+    document.writeln("        </ul>");
+    document.writeln("    </div>");
 function getCookie(name)
 {
 var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)");
