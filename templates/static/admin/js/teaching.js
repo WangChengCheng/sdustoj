@@ -51,16 +51,22 @@ function clickOption() {
             var major_selected = $("select[name='major_selected'] option:selected").text();
             var class_selected = $("select[name='class_selected'] option:selected").text();
             tableElem.html("");
-            data.forEach(function (val, index, arr) {
-                tableElem.append("<tr>");
-                tableElem.append("<td>"+arr[index].pk+"</td>");
-                tableElem.append("<td>"+arr[index].fields['student_name']+"</td>");
-                tableElem.append("<td>"+grade_selected+"</td>");
-                tableElem.append("<td>"+major_selected+"</td>");
-                tableElem.append("<td>"+class_selected+"</td>");
-                // tableElem.append("<td><div class='ownbtngroup'><a href='javascript:void(0);' id='delete'>删除</a></div> </td>");
-                tableElem.append("</tr>");
-            })
+            if($.isEmptyObject(data)){
+                tableElem.append("<tr><td colspan=\"5\" style=\"text-align: center; font-size: larger\">无记录</td></tr>");
+            }
+            else{
+                data.forEach(function (val, index, arr) {
+                    tableElem.append("<tr>");
+                    tableElem.append("<td>"+arr[index].pk+"</td>");
+                    tableElem.append("<td>"+arr[index].fields['student_name']+"</td>");
+                    tableElem.append("<td>"+grade_selected+"</td>");
+                    tableElem.append("<td>"+major_selected+"</td>");
+                    tableElem.append("<td>"+class_selected+"</td>");
+                    // tableElem.append("<td><div class='ownbtngroup'><a href='javascript:void(0);' id='delete'>删除</a></div> </td>");
+                    tableElem.append("</tr>");
+                });
+            }
+
         },
         error:function (XMLHttpRequest) {
             $("#tbody").html("");

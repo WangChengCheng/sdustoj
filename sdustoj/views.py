@@ -1578,7 +1578,6 @@ def teaching_relation(request):
 
     if 'changeOption' in request.GET and request.GET.get('changeOption') == 'true':
         ajax_val = serializers.serialize("json", student_list)
-        print ajax_val
         return HttpResponse(ajax_val)
 
     return render_to_response('admin/teaching.html', {'academic_year_list': academic_year_list, 'semester_list': semester_list,
@@ -1587,7 +1586,7 @@ def teaching_relation(request):
                                                       'academic_year_selected': academic_year_selected, 'semester_selected': semester_selected,
                                                       'course_selected': course_selected, 'grade_selected': grade_selected,
                                                       'major_selected': major_selected, 'class_selected': class_selected,
-                                                      'student_list': student_list}, c)
+                                                      'student_list': student_list, 'student_list_size': student_list.__len__()}, c)
 
 
 # TEST!!!

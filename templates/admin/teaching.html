@@ -115,16 +115,22 @@
                     </tr>
                     </thead>
                     <tbody id="tbody">
-                    {% for student in student_list %}
+                    {% if student_list_size == 0 %}
                         <tr>
-                            <td>{{ student.student_num }}</td>
-                            <td>{{ student.student_name }}</td>
-                            <td>{{ grade_selected }}</td>
-                            <td>{{ major_selected }}</td>
-                            <td>{{ class_selected }}</td>
+                           <td colspan="5" style="text-align: center; font-size: larger">无记录</td>
                         </tr>
-
-                    {% endfor %}
+                    {% endif %}
+                    {% if student_list_size > 0 %}
+                        {% for student in student_list %}
+                            <tr>
+                                <td>{{ student.student_num }}</td>
+                                <td>{{ student.student_name }}</td>
+                                <td>{{ grade_selected }}</td>
+                                <td>{{ major_selected }}</td>
+                                <td>{{ class_selected }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
                     </tbody>
                 </table>
             </div>
