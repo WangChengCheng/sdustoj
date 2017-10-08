@@ -40,7 +40,7 @@
             <form action="#" method="get" style="width: auto; height: 80px;">
                 <div class="condition_teaching_query">
                     学年：
-                    <select name="academic_year_selected" style="width: 180px" onchange="clickOption()">
+                    <select name="academic_year_selected" style="width: 180px" onchange="clickOption(this)">
                         {% for academic_year in academic_year_list %}
                             <option value="{{ academic_year.academic_year_id }}"{% if academic_year_selected == academic_year.academic_year_id %}
                                 selected
@@ -50,7 +50,7 @@
                 </div>
                 <div class="condition_teaching_query">
                     学期：
-                    <select name="semester_selected" style="width: 180px" onchange="clickOption()">
+                    <select name="semester_selected" style="width: 180px" onchange="clickOption(this)">
                         {% for semester in semester_list %}
                             <option value="{{ semester.semester_id }}" {% if semester.semester_id == semester_selected %} selected
                             {% endif %}>{{ semester.semester_name }}</option>
@@ -59,7 +59,7 @@
                 </div>
                 <div class="condition_teaching_query">
                     课程：
-                    <select name="course_selected" style="width: 180px" onchange="clickOption()">
+                    <select name="course_selected" style="width: 180px" onchange="clickOption(this)">
                         {% for course in course_list %}
                             <option value="{{ course.course_code }}" {% if course_selected == course.course_code %} selected {% endif %}>{{ course.course_name }}</option>
                         {% endfor %}
@@ -67,7 +67,7 @@
                 </div>
                 <div class="condition_teaching_query">
                     年级：
-                    <select name="grade_selected" style="width: 180px" onchange="clickOption()">
+                    <select name="grade_selected" style="width: 180px" onchange="clickOption(this)">
                         {% for grade in grade_list %}
                             <option value="{{ grade.grade_id }}" {% if grade_selected == grade.grade_id %}
                             selected
@@ -77,7 +77,7 @@
                 </div>
                 <div class="condition_teaching_query">
                     专业：
-                    <select name="major_selected" style="width: 180px" onchange="clickOption()">
+                    <select name="major_selected" style="width: 180px" onchange="clickOption(this)">
                         {% for major in major_list %}
                             <option value="{{ major.major_code }}" {% if major_selected == major.major_code %}
                             selected
@@ -87,7 +87,7 @@
                 </div>
                 <div class="condition_teaching_query">
                     班级：
-                    <select name="class_selected" style="width: 180px" onchange="clickOption()">
+                    <select name="class_selected" style="width: 180px" onchange="clickOption(this)">
                         {% for class in class_list %}
                             <option value="{{ class.class_num }}" {% if class_selected == class.class_num %}
                             {% endif %}>
@@ -99,11 +99,9 @@
 
             </form><br>
             <hr style="border:1px outset cornflowerblue;" />
+
             <div class="tablediv">
-                <table class="atticletable">
-                    <!--<caption class="tableheader">文章列表
-                        <span><a href="addarticle.html?moduleId=1&amp;menuName=%u4F01%u4E1A%u6587%u5316&amp;submenuName=%u6587%u5316%u6545%u4E8B" id="jumpAddUrl">添加文章</a></span>
-                    </caption>-->
+                <table class="atticletable"style="height: 400px;">
                     <thead>
                     <tr class="trheader">
                         <th>学号</th>
@@ -131,48 +129,31 @@
                             </tr>
                         {% endfor %}
                     {% endif %}
+
                     </tbody>
                 </table>
-            </div>
+
+        </div>
             <div class="tfoot">
                 <div class="btngroup clearfix">
                     <!-- <i class="fa fa-trash red" id="delid"></i>
                     <i class="fa fa-search orange"></i> -->
                 </div>
                 <div class="pagegroup">
-                    <span class="fa fa-angle-double-left " id="firstpage"></span>
-                    <span class="fa fa-angle-left " id="prepage"></span>
-                    <span class="fa fa-angle-right " id="nextpage"></span>
-                    <span class="fa fa-angle-double-right" id="lastpage"></span>
+                    <span class="fa fa-angle-double-left " id="firstpage" onclick="clickOption(this)"></span>
+                    <span class="fa fa-angle-left " id="prepage" onclick="clickOption(this)"></span>
+                    <span class="fa fa-angle-right " id="nextpage" onclick="clickOption(this)"></span>
+                    <span class="fa fa-angle-double-right" id="lastpage" onclick="clickOption(this)"></span>
                 </div>
                 <div class="pageinfo">
-                    <!-- <small id="nowprenum">1</small>-<small id="nownextnum">12</small>　共<small id="allnum">12</small>条 -->
+                    <small id="nowprenum" >{{ cur_page }}</small>
+                    -<small id="nownextnum">{{ totalpage }}</small>　共<small id="allnum">{{ total }}</small>条
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    $(function () {
-        // 全局变量
 
-
-        $("#nextpage").bind("click", function () {
-            window.location.href = "contestlist?op=add&page_num={{ cur_page }}";
-        })
-        $("#prepage").bind("click", function () {
-            window.location.href = "contestlist?op=sub&page_num={{ cur_page }}";
-        })
-
-        $("#firstpage").bind("click", function () {
-            window.location.href = "contestlist?page_num=1";
-        })
-        $("#lastpage").bind("click", function () {
-            window.location.href = "contestlist?page_num={{ totalpage }}";
-        })
-
-    });
-</script>
 </body>
 </html>

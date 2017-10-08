@@ -3,6 +3,7 @@ import codecs
 import logging
 
 import sys
+from json.decoder import JSONObject
 from rexec import FileWrapper
 
 import select
@@ -1264,7 +1265,8 @@ def admin_userloginlog(request):
         page_num = page[-1]
     users = p.page(page_num).object_list
     return render_to_response('admin/userloginlog.html',
-                              {'userlog': userlog, 'cur_page': page_num, 'totalpage': page[-1]}, c)
+                              {'userlog': users, 'cur_page': page_num,
+                               'totalpage': page[-1], 'total': len(userlog)}, c)
 
 
 '''
@@ -1574,19 +1576,50 @@ def teaching_relation(request):
                                          grade=grade_selected).values('class_id')
 
     # 根据上面筛选出的班级，获取对应班级的学生（结果为：没有和只有一个班的学生）
-    student_list = Student.objects.filter(class_field=class_id_list)
+    student_list = Student.objects.filter(class_field=class_id_list).order_by("student_num")
 
+    # 分页
+    page_num = 1
+    if 'page_num' in request.GET and request.GET.get('page_num') != '':
+        page_num = int(request.GET.get('page_num'))
+    if 'op' in request.GET and request.GET.get('op') != '':
+        op = request.GET.get('op')
+        if 'add' in str(op):
+            page_num = page_num + 1
+        if 'sub' in str(op) and page_num > 1:
+            page_num = page_num - 1
+    p = Paginator(student_list, config.admin_page_cuont)
+    page = p.page_range
+    if len(page) == 0:
+        page_num = 1
+    elif len(page) < page_num:
+        page_num = page[-1]
+    student_list_curr_page = p.page(page_num).object_list
+
+    # 返回json数据
     if 'changeOption' in request.GET and request.GET.get('changeOption') == 'true':
-        ajax_val = serializers.serialize("json", student_list)
-        return HttpResponse(ajax_val)
+        # ajax_val = serializers.serialize("json", student_list_curr_page)
+        ajax_val = []
+        for student in student_list_curr_page:
+            ajax_val.append(model_to_dict(student))
+        # print ajax_val
+        json_data = {'academic_year_selected': academic_year_selected, 'semester_selected': semester_selected,
+                     'course_selected': course_selected, 'grade_selected': grade_selected,
+                     'major_selected': major_selected, 'class_selected': class_selected,
+                     'student_list': ajax_val, 'student_list_size': len(student_list_curr_page),
+                     'cur_page': page_num, 'totalpage': page[-1], 'total': len(student_list)}
+        # print json.dumps(json_data)
+        return HttpResponse(json.dumps(json_data), content_type="application/json")
 
-    return render_to_response('admin/teaching.html', {'academic_year_list': academic_year_list, 'semester_list': semester_list,
-                                                      'course_list': course_list, 'grade_list': grade_list,
-                                                      'major_list': major_list, 'class_list': class_list,
-                                                      'academic_year_selected': academic_year_selected, 'semester_selected': semester_selected,
-                                                      'course_selected': course_selected, 'grade_selected': grade_selected,
-                                                      'major_selected': major_selected, 'class_selected': class_selected,
-                                                      'student_list': student_list, 'student_list_size': student_list.__len__()}, c)
+    return render_to_response('admin/teaching.html',
+                              {'academic_year_list': academic_year_list, 'semester_list': semester_list,
+                               'course_list': course_list, 'grade_list': grade_list,
+                               'major_list': major_list, 'class_list': class_list,
+                               'academic_year_selected': academic_year_selected, 'semester_selected': semester_selected,
+                               'course_selected': course_selected, 'grade_selected': grade_selected,
+                               'major_selected': major_selected, 'class_selected': class_selected,
+                               'student_list': student_list_curr_page, 'student_list_size': len(student_list_curr_page),
+                               'cur_page': page_num, 'totalpage': page[-1], 'total': len(student_list)}, c)
 
 
 # TEST!!!

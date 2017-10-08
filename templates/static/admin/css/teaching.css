@@ -63,6 +63,7 @@ table {
     border-right: 1px solid #e5e5e5;
     border-bottom: 1px solid #e5e5e5;
     border-collapse:collapse;
+    margin-bottom: 50px;
 }
 table td ,table th {
     color: #777;
@@ -112,8 +113,8 @@ table tr td,table tr th{
 table tr th input[type="checkbox"] ,table tr td input[type="checkbox"]{
     margin: 10px 2px;
 }
-table tr:nth-child(odd){
-    background-color: #F7F7F7;
+table tr:nth-child(even){
+    background-color: #9dc298;
 }
 table tr.hover{
     background: #EFF4F7;
