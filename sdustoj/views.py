@@ -28,6 +28,7 @@ from django.utils.timezone import utc
 from django.utils.timezone import local
 import operator
 from django.http import StreamingHttpResponse
+from django.core import serializers
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -1477,13 +1478,119 @@ def clean_archive_dir(user_id):
         os.remove(tgz_name)
 
 
-# TEST!!!!
-@csrf_protect
-def test_data(request):
+def teaching_relation(request):
+    # Firstly, find teacher by user_id
+
+    # username = ''
+    # if 'uname' in request.COOKIES:
+    #     username = request.COOKIES['uname']
+    # teacher_num = Teacher.objects.filter(user_id=username).values("teacher_num")
+    # teaching_relation_list = TeachingRelation.objects.filter(teacher_num=teacher_num)
+    # 页面中“班级”下拉列表中的所有option
+    # class_id_list = teaching_relation_list.values("class_field").distinct().order_by("class_field")
+    # class_info_list = ClassInfo.objects.filter(class_id=class_id_list)
+    # class_list = []
+    # for class_info in class_info_list:
+    #     class_name = '%s%s级%s' % (class_info.major, class_info.grade, class_info.class_num)
+    #     class_list.append(class_name)
+
+    # 页面中“学期”下拉列表中的所有option
+    # semester_id_list = teaching_relation_list.values("semester").distinct().order_by("semester")
+    # semester_list = Semester.objects.filter(semester_id=semester_id_list)
+
+    # 页面中“学期”下拉列表中的所有option
+    # course_code_list = teaching_relation_list.values("course_code").distinct().order_by("course_code")
+    # course_list = Course.objects.filter(course_code=course_code_list)
+
     c = RequestContext(request)
-    return render_to_response('admin/data', c)
+
+    # 填充页面中的所有option
+    academic_year_list = AcademicYear.objects.all().order_by('-academic_year_name')
+    semester_list = Semester.objects.all().order_by('semester_id')
+    course_list = Course.objects.all().order_by('course_code')
+    grade_list = Grade.objects.all().order_by('-grade_id')
+    major_list = Major.objects.all().order_by('major_code')
+    class_list = Class.objects.all().order_by('class_num').distinct()
+
+    academic_year_selected = -1
+    semester_selected = -1
+    course_selected = ''
+    grade_selected = -1
+    major_selected = ''
+    class_selected = ''
+
+    if len(academic_year_list):
+        academic_year_selected = academic_year_list[0].academic_year_id
+    if len(semester_list):
+        semester_selected = semester_list[0].semester_id
+    if len(course_list):
+        course_selected = course_list[0].course_code
+    if len(grade_list):
+        grade_selected = grade_list[0].grade_id
+    if len(major_list):
+        major_selected = major_list[0].major_code
+    if len(class_list):
+        class_selected = class_list[0].class_num
+
+    # if 'uname' in request.COOKIES:
+    #     username = request.COOKIES['uname']
+    # teacher_num = Teacher.objects.filter(user_id=username).values("teacher_num")
+    # teaching_relation_list = TeachingRelation.objects.filter(teacher_num=teacher_num)
+
+    if 'academic_year_selected' in request.GET \
+            and request.GET.get('academic_year_selected') != '' \
+            and request.GET.get('academic_year_selected') is not None:
+        academic_year_selected = int(request.GET.get('academic_year_selected'))
+    if 'semester_selected' in request.GET \
+            and request.GET.get('semester_selected') != '' \
+            and request.GET.get('semester_selected') is not None:
+        semester_selected = int(request.GET.get('semester_selected'))
+    if 'course_selected' in request.GET \
+            and request.GET.get('course_selected') != '' \
+            and request.GET.get('course_selected') is not None:
+        course_selected = request.GET.get('course_selected')
+    if 'grade_selected' in request.GET \
+            and request.GET.get('grade_selected') != '' \
+            and request.GET.get('grade_selected') is not None:
+        grade_selected = int(request.GET.get('grade_selected'))
+    if 'major_selected' in request.GET \
+            and request.GET.get('major_selected') != '' \
+            and request.GET.get('major_selected') is not None:
+        major_selected = request.GET.get('major_selected')
+    if 'class_selected' in request.GET \
+            and request.GET.get('class_selected') != '' \
+            and request.GET.get('class_selected') is not None:
+        class_selected = request.GET.get('class_selected')
+
+    # 首先根据学年、学期、课程筛选出符合条件的班级（class_id）
+    class_id_list = TeachingRelation.objects.filter(academic_year=academic_year_selected,
+                                                    semester_id=semester_selected,
+                                                    course_code=course_selected).values("class_field")
+
+    # 再根据选择的“班级（一班、二班、...，并非class_id）”、“专业”、“年级”三个条件进一步筛选出符合条件的班级
+    class_id_list = Class.objects.filter(class_id=class_id_list,
+                                         class_num=class_selected,
+                                         major_code=major_selected,
+                                         grade=grade_selected).values('class_id')
+
+    # 根据上面筛选出的班级，获取对应班级的学生（结果为：没有和只有一个班的学生）
+    student_list = Student.objects.filter(class_field=class_id_list)
+
+    if 'changeOption' in request.GET and request.GET.get('changeOption') == 'true':
+        ajax_val = serializers.serialize("json", student_list)
+        print ajax_val
+        return HttpResponse(ajax_val)
+
+    return render_to_response('admin/teaching.html', {'academic_year_list': academic_year_list, 'semester_list': semester_list,
+                                                      'course_list': course_list, 'grade_list': grade_list,
+                                                      'major_list': major_list, 'class_list': class_list,
+                                                      'academic_year_selected': academic_year_selected, 'semester_selected': semester_selected,
+                                                      'course_selected': course_selected, 'grade_selected': grade_selected,
+                                                      'major_selected': major_selected, 'class_selected': class_selected,
+                                                      'student_list': student_list}, c)
 
 
+# TEST!!!
 @csrf_protect
 def admin_test(request):
     c = RequestContext(request)

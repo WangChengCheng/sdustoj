@@ -3,23 +3,19 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title>SDUSTOJ</title>
+
     <link rel="stylesheet" href="../static/admin/common/css/font-awesome.min.css"/>
     <link rel="stylesheet" href="../static/admin/common/css/base.css"/>
-    <link rel="stylesheet" href="../static/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="../static/admin/css/teaching.css"/>
     <link rel="Shortcut Icon" href="../static/img/school.png">
-
     <link rel="stylesheet" type="text/css" href="../static/common/css/xcConfirm.css"/>
+    <script language="javascript" src="../static/admin/common/js/jquery-2.0.3.min.js"></script>
+    <script language="javascript" src="../static/js/jquery.cookie.js"></script>
 
-    <script src="../static/admin/common/js/jquery-2.0.3.min.js"></script>
     <script src="../static/admin/common/js/jquery.session.js"></script>
     <script src="../static/admin/common/js/base.js"></script>
-    <script language="javascript" src="../static/js/jquery.cookie.js"></script>
     <script src="../static/common/js/xcConfirm.js" type="text/javascript" charset="utf-8"></script>
-
-
-    <link rel="stylesheet" href="../static/css/jquery.bootgrid.css"/>
-    <script src="../static/js/jquery.bootgrid.js"></script>
-    <script src="../static/js/jquery.bootgrid.fa.js"></script>
+    <script src="../static/admin/js/teaching.js"></script>
 
 </head>
 <body>
@@ -40,63 +36,136 @@
         </div>
         <!--内容区域-->
         <div class="container">
-            <table id="grid-selection" class="table table-condensed table-hover table-striped">
-                <thead>
-                    <tr>
-                        <th data-column-id="id" data-type="numeric" data-identifier="true">ID</th>
-                        <th data-column-id="sender">Sender</th>
-                        <th data-column-id="received" data-order="desc">Received</th>
-                        <th data-column-id="link" data-formatter="link" data-sortable="false">Link</th>
-                    </tr>
-                </thead>
-            </table>
+            <hr style="border:1px outset cornflowerblue;" />
+            <form action="#" method="get" style="width: auto; height: 80px;">
+                <div class="condition_teaching_query">
+                    学年：
+                    <select name="academic_year_selected" style="width: 180px" onchange="clickOption()">
+                        {% for academic_year in academic_year_list %}
+                            <option value="{{ academic_year.academic_year_id }}"{% if academic_year_selected == academic_year.academic_year_id %}
+                                selected
+                            {% endif %}>{{ academic_year.academic_year_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="condition_teaching_query">
+                    学期：
+                    <select name="semester_selected" style="width: 180px" onchange="clickOption()">
+                        {% for semester in semester_list %}
+                            <option value="{{ semester.semester_id }}" {% if semester.semester_id == semester_selected %} selected
+                            {% endif %}>{{ semester.semester_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="condition_teaching_query">
+                    课程：
+                    <select name="course_selected" style="width: 180px" onchange="clickOption()">
+                        {% for course in course_list %}
+                            <option value="{{ course.course_code }}" {% if course_selected == course.course_code %} selected {% endif %}>{{ course.course_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="condition_teaching_query">
+                    年级：
+                    <select name="grade_selected" style="width: 180px" onchange="clickOption()">
+                        {% for grade in grade_list %}
+                            <option value="{{ grade.grade_id }}" {% if grade_selected == grade.grade_id %}
+                            selected
+                            {% endif %}>{{ grade.start_time| date:"Y" }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="condition_teaching_query">
+                    专业：
+                    <select name="major_selected" style="width: 180px" onchange="clickOption()">
+                        {% for major in major_list %}
+                            <option value="{{ major.major_code }}" {% if major_selected == major.major_code %}
+                            selected
+                            {% endif %}>{{ major.major_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="condition_teaching_query">
+                    班级：
+                    <select name="class_selected" style="width: 180px" onchange="clickOption()">
+                        {% for class in class_list %}
+                            <option value="{{ class.class_num }}" {% if class_selected == class.class_num %}
+                            {% endif %}>
+                                {{ class.class_num }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
 
+            </form><br>
+            <hr style="border:1px outset cornflowerblue;" />
+            <div class="tablediv">
+                <table class="atticletable">
+                    <!--<caption class="tableheader">文章列表
+                        <span><a href="addarticle.html?moduleId=1&amp;menuName=%u4F01%u4E1A%u6587%u5316&amp;submenuName=%u6587%u5316%u6545%u4E8B" id="jumpAddUrl">添加文章</a></span>
+                    </caption>-->
+                    <thead>
+                    <tr class="trheader">
+                        <th>学号</th>
+                        <th>姓名</th>
+                        <th>年级</th>
+                        <th>专业</th>
+                        <th>班级</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody id="tbody">
+                    {% for student in student_list %}
+                        <tr>
+                            <td>{{ student.student_num }}</td>
+                            <td>{{ student.student_name }}</td>
+                            <td>{{ grade_selected }}</td>
+                            <td>{{ major_selected }}</td>
+                            <td>{{ class_selected }}</td>
+                        </tr>
+
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="tfoot">
+                <div class="btngroup clearfix">
+                    <!-- <i class="fa fa-trash red" id="delid"></i>
+                    <i class="fa fa-search orange"></i> -->
+                </div>
+                <div class="pagegroup">
+                    <span class="fa fa-angle-double-left " id="firstpage"></span>
+                    <span class="fa fa-angle-left " id="prepage"></span>
+                    <span class="fa fa-angle-right " id="nextpage"></span>
+                    <span class="fa fa-angle-double-right" id="lastpage"></span>
+                </div>
+                <div class="pageinfo">
+                    <!-- <small id="nowprenum">1</small>-<small id="nownextnum">12</small>　共<small id="allnum">12</small>条 -->
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-
 <script>
-    $.ajaxSetup({
-      beforeSend: function(xhr, settings){
-          var csrftoken = $.cookie('csrftoken');
-          xhr.setRequestHeader("X-CSRFToken", csrftoken);
-      }
-    });
-    $("#grid-selection").bootgrid({
-        ajax: true,
-        post: function ()
-        {
-            /* To accumulate custom parameter with the request object */
-            return {
-                id: "b0df282a-0d67-40e5-8558-c9e93b7befed"
-            };
-        },
-        url: "data",
-        selection: true,
-        multiSelect: true,
-        formatters: {
-            "link": function(column, row)
-            {
-                return "<a href=\"#\">" + column.id + ": " + row.id + "</a>";
-            }
-        }
-    }).on("selected.rs.jquery.bootgrid", function(e, rows)
-    {
-        var rowIds = [];
-        for (var i = 0; i < rows.length; i++)
-        {
-            rowIds.push(rows[i].id);
-        }
-        alert("Select: " + rowIds.join(","));
-    }).on("deselected.rs.jquery.bootgrid", function(e, rows)
-    {
-        var rowIds = [];
-        for (var i = 0; i < rows.length; i++)
-        {
-            rowIds.push(rows[i].id);
-        }
-        alert("Deselect: " + rowIds.join(","));
+    $(function () {
+        // 全局变量
+
+
+        $("#nextpage").bind("click", function () {
+            window.location.href = "contestlist?op=add&page_num={{ cur_page }}";
+        })
+        $("#prepage").bind("click", function () {
+            window.location.href = "contestlist?op=sub&page_num={{ cur_page }}";
+        })
+
+        $("#firstpage").bind("click", function () {
+            window.location.href = "contestlist?page_num=1";
+        })
+        $("#lastpage").bind("click", function () {
+            window.location.href = "contestlist?page_num={{ totalpage }}";
+        })
+
     });
 </script>
 </body>
