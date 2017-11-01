@@ -422,14 +422,14 @@ def status(request):
     if 'power' in request.COOKIES:
         power = request.COOKIES.get('power')
 
-    # if 'page_num' in request.GET:
-    #     page_num = int(request.GET.get('page_num'))
-    # if 'op' in request.GET:
-    #     op = request.GET.get('op')
-    #     if 'add' in str(op):
-    #         page_num = page_num + 1
-    #     if 'sub' in str(op) and page_num > 1:
-    #         page_num = page_num - 1
+    if 'page_num' in request.GET:
+        page_num = int(request.GET.get('page_num'))
+    if 'op' in request.GET:
+        op = request.GET.get('op')
+        if 'add' in str(op):
+            page_num = page_num + 1
+        if 'sub' in str(op) and page_num > 1:
+            page_num = page_num - 1
 
     # 添加搜索功能
     statusinfo = Statusinfo.objects.all().order_by('-solution_id')
@@ -1135,6 +1135,8 @@ def admin_teaching(request):
     c = RequestContext(request)
 
     return render_to_response('admin/teaching.html', {}, c)
+
+
 # ---------------
 '''
 deal with login out port
@@ -1608,7 +1610,7 @@ def teaching_relation(request):
                      'major_selected': major_selected, 'class_selected': class_selected,
                      'student_list': ajax_val, 'student_list_size': len(student_list_curr_page),
                      'cur_page': page_num, 'totalpage': page[-1], 'total': len(student_list)}
-        # print json.dumps(json_data)
+        print json.dumps(json_data)
         return HttpResponse(json.dumps(json_data), content_type="application/json")
 
     return render_to_response('admin/teaching.html',
@@ -1620,6 +1622,34 @@ def teaching_relation(request):
                                'major_selected': major_selected, 'class_selected': class_selected,
                                'student_list': student_list_curr_page, 'student_list_size': len(student_list_curr_page),
                                'cur_page': page_num, 'totalpage': page[-1], 'total': len(student_list)}, c)
+
+
+def add_student(request):
+    c = RequestContext(request)
+    print "111111111111111111111111111111111111"
+    file = request.FILES.get('student_file')
+    # ip = request.META.get('REMOTE_ADDR', None)
+    try:
+        for line in file:
+            student_info = re.split(',|;', str(line))
+            if student_info[0] != '' and student_info[1] != '' and student_info[3] != '':
+                class_instance = Class.objects.get(class_id=int(student_info[3]))
+                student = Student(student_num=student_info[0], student_name=student_info[1],
+                                  student_email=student_info[2], class_field=class_instance, user_id=student_info[0])
+                stu_user = Users(defunct='C', nick=student_info[1], user_id=student_info[0], password=student_info[0],
+                                 email=student_info[2], volume=str(555), language=str(555),
+                                 ip=str(request.META.get('REMOTE_ADDR', None)),
+                                 activated=str(555), submit=0, solved=0,
+                                 reg_time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
+                print student.class_field
+                student.save()
+                stu_user.save()
+            else:
+                return render_to_response('admin/teaching.html', {'result': 'failure'}, c)
+    except Exception as e:  # 可能异常：主键冲突；主键为空；外键（班级）不存在
+        print e
+        return render_to_response('admin/teaching.html', {'result': 'failure'}, c)
+    return render_to_response('admin/teaching.html', {'result': 'success'}, c)
 
 
 # TEST!!!

@@ -403,3 +403,7 @@ a.btnright {
 hr{
     color: cornflowerblue;
 }
+#student_file{
+    border: 1px solid gray;
+    width: 180px;
+}

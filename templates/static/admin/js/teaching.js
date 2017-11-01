@@ -124,3 +124,36 @@ function clickOption(obj) {
 
     });
 }
+
+$(document).ready(function()
+{
+     $("#student_file").each(function () {
+         $(this).qtip({
+            content: {
+                text:"请上传.csv文件，每行信息格式为:<br>学号,姓名,邮箱,class_id",
+                title:{
+                    text: '提示',
+                    button:' '
+                }
+            },
+            position: {
+//                viewport: $(window)
+                my: 'left center',
+                at: 'right center'
+//                target: $('.sim')
+            },
+            hide:{
+//                event: true,
+//                target: $('.sim'),
+//                delay: 1000
+                fixed: true,
+                delay: 300
+            },
+            style: {
+                classes: 'qtip-bootstrap qtip-shadow'
+
+            }//'qtip-wiki'
+        });
+    });
+
+});

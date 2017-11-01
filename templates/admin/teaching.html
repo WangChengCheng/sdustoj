@@ -7,10 +7,12 @@
     <link rel="stylesheet" href="../static/admin/common/css/font-awesome.min.css"/>
     <link rel="stylesheet" href="../static/admin/common/css/base.css"/>
     <link rel="stylesheet" href="../static/admin/css/teaching.css"/>
+    <link rel="stylesheet" href="../static/css/jquery.qtip.min.css">
     <link rel="Shortcut Icon" href="../static/img/school.png">
     <link rel="stylesheet" type="text/css" href="../static/common/css/xcConfirm.css"/>
     <script language="javascript" src="../static/admin/common/js/jquery-2.0.3.min.js"></script>
     <script language="javascript" src="../static/js/jquery.cookie.js"></script>
+    <script language="javascript" src="../static/js/jquery.qtip.min.js"></script>
 
     <script src="../static/admin/common/js/jquery.session.js"></script>
     <script src="../static/admin/common/js/base.js"></script>
@@ -99,7 +101,16 @@
 
             </form><br>
             <hr style="border:1px outset cornflowerblue;" />
-
+            <div style="text-align: center; padding: 5px 0;">
+                <form action="import_student" method="post" enctype="multipart/form-data">{% csrf_token %}
+                    <div>
+                        批量导入学生信息：
+                        <input type="file" id="student_file" name="student_file" title=""/>
+                        <input type="submit" id="submit" name="submit" />
+                    </div>
+                </form>
+            </div>
+            <hr style="border:1px outset cornflowerblue;" />
             <div class="tablediv">
                 <table class="atticletable"style="height: 400px;">
                     <thead>
