@@ -1641,7 +1641,6 @@ def add_student(request):
                                  ip=str(request.META.get('REMOTE_ADDR', None)),
                                  activated=str(555), submit=0, solved=0,
                                  reg_time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
-                print student.class_field
                 student.save()
                 stu_user.save()
             else:
