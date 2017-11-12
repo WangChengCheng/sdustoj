@@ -1173,6 +1173,7 @@ def getcodeinfo(request):
         code = re.sub('[<]', '&lt;', code)
         code = re.sub('[>]', '&gt;', code)
         code = re.sub('[\r\n]', '<p>', code)
+        code = re.sub('[\t]', '    ', code)
         json_data = '{\"source\":\"' + code + '\"}';
         return HttpResponse(json_data, c)
     except Exception, e:
@@ -1640,7 +1641,7 @@ def add_student(request):
                                  email=student_info[2], volume=str(555), language=str(555),
                                  ip=str(request.META.get('REMOTE_ADDR', None)),
                                  activated=str(555), submit=0, solved=0,
-                                 reg_time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
+                                 reg_time=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), accepted=0)
                 student.save()
                 stu_user.save()
             else:
