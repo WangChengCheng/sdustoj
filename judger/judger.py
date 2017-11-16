@@ -19,7 +19,6 @@ import MySQLdb
 import re
 from db import run_sql
 from Queue import Queue
-from sdustoj.models import *
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -181,12 +180,10 @@ def check_dangerous_code(solution_id, language):
 
 
 def update_compile_info(solution_id, err):
-    # sql = "insert into compileinfo(solution_id,error) values (" + str(solution_id) + ",'" + str(err) + "')" \
-    #        "ON DUPLICATE KEY UPDATE error = '" + str(err) + "';"
-    # run_sql(sql)
-    # 直接执行上述语句，err中有分号的话会出错
-    compile_info = Compileinfo(solution_id=solution_id, error=err)
-    compile_info.save()
+    err = MySQLdb.escape_string(err)
+    sql = "insert into compileinfo(solution_id,error) values (" + str(solution_id) + ",'" + str(err) + "')" \
+           "ON DUPLICATE KEY UPDATE error = '" + str(err) + "';"
+    run_sql(sql)
 
 
 
