@@ -76,8 +76,10 @@
             <dd>
               {{ problem.hint }}
             </dd>
-            <dt>Append Code</dt>
-            <dd></dd>
+            <dt>Pre Append Code</dt>
+            <dd>{{ problem.pre_append }}</dd>
+            <dt>Post Append Code</dt>
+            <dd>{{ problem.post_append }}</dd>
         </dl>
         <div class="button">
             <a class="btn" title="Who has SOLVED this Problem" href="problemstatistics?p_id={{ problem.problem_id}}">Statistics</a>

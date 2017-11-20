@@ -229,6 +229,7 @@ def compile(solution_id, language):
 
 def get_code(solution_id, problem_id, pro_lang):
     '''从数据库获取代码并写入work目录下对应的文件'''
+    global post_code
     file_name = {
         "gcc": "main.c",
         "g++": "main.cpp",
@@ -242,8 +243,21 @@ def get_code(solution_id, problem_id, pro_lang):
         'python3': 'main.py',
         "haskell": "main.hs"
     }
+    select_pre_code = "select pre_append from sdustoj.problem where problem_id= " + problem_id
+    try:
+        pre_code = run_sql(select_pre_code)
+    except:
+        logging.error("cannot get pre_append_code of problem %s" % problem_id)
+
+    select_post_code = "select post_append from sdustoj.problem where problem_id= " + problem_id
+    try:
+        post_code = run_sql(select_post_code)
+    except:
+        logging.error("cannot get post_append_code of problem %s" % problem_id)
+
     select_code_sql = "select source from sdustoj.source_code where solution_id  = " + str(solution_id)
     feh = run_sql(select_code_sql)
+    code = ""
     if feh is not None:
         try:
             code = feh[0][0]
@@ -253,6 +267,13 @@ def get_code(solution_id, problem_id, pro_lang):
     else:
         logging.error("2 cannot get code of runid %s" % solution_id)
         return False
+    pre = pre_code[0][0]
+    post = post_code[0][0]
+    if pre is not None:
+        code = pre.append(code)  # 拼接pre_code+code
+    if post is not None:
+        code = code.append(post)  # 拼接code+post_code
+    print code
     try:
         work_path = os.path.join(config.work_dir, str(solution_id))
         low_level()

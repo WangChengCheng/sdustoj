@@ -373,6 +373,8 @@ class Problem(models.Model):
     submit = models.IntegerField(blank=True, null=True)
     solved = models.IntegerField(blank=True, null=True)
     fileupload = models.CharField(max_length=1, blank=True, null=True)
+    pre_append = models.TextField(blank=True, null=True)
+    post_append = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False

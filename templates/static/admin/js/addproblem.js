@@ -18,6 +18,8 @@
             $sampleinput=$("#editorSampleOutput").val();
             $sampleoutput=$("#editorSampleInput").val();
             $hint=$("#editorHint").val();
+            $preappendcode=$("#editorPreAppendCode").val();
+            $postappendcode=$("#editorPostAppendCode").val();
             $.post("/admin/addproblem_save",{
                 title:$title,
                 timelimit:$timelimit,
@@ -27,7 +29,9 @@
                 output:$output,
                 sampleinput:$sampleinput,
                 sampleoutput:$sampleoutput,
-                hint:$hint
+                hint:$hint,
+                preappendcode:$preappendcode,
+                postappendcode:$postappendcode
             },function(data,textStatus){
                 if(data=="success"){
                     alert_success();

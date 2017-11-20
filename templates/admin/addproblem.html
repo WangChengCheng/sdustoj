@@ -96,6 +96,14 @@
                         <span>Hint</span>
                         <textarea id="editorHint" type="text/plain" ></textarea>
                     </div>
+                    <div class="conlabel">
+                        <span>Pre_AppendCode</span>
+                        <textarea id="editorPreAppendCode" type="text/plain" ></textarea>
+                    </div>
+                    <div class="conlabel">
+                        <span>Post_AppendCode</span>
+                        <textarea id="editorPostAppendCode" type="text/plain" ></textarea>
+                    </div>
                      <div class="ownbtngroup">
                         <a  id="submit"><i  class="fa fa-check"></i>添加</a><a href="" id="reset"><i class="fa fa-undo"></i>取消</a>
                     </div>
@@ -183,6 +191,34 @@
 
             })
       $('#editorSampleInput').editable({
+                inlineMode: false,
+                alwaysBlank: true,
+                language: "zh_cn",
+                direction: "ltr",
+                height:"200px",
+                width:"80%",
+                autosave: true,
+                autosaveInterval: 2500,
+                spellcheck: true,
+                plainPaste: true,
+                enableScript: false
+
+            })
+     $('#editorPreAppendCode').editable({
+                inlineMode: false,
+                alwaysBlank: true,
+                language: "zh_cn",
+                direction: "ltr",
+                height:"200px",
+                width:"80%",
+                autosave: true,
+                autosaveInterval: 2500,
+                spellcheck: true,
+                plainPaste: true,
+                enableScript: false
+
+            })
+     $('#editorPostAppendCode').editable({
                 inlineMode: false,
                 alwaysBlank: true,
                 language: "zh_cn",

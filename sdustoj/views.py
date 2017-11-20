@@ -787,10 +787,14 @@ def admin_addproblem_save(request):
     sampleinput = request.POST.get('sampleinput')
     sampleoutput = request.POST.get('sampleoutput')
     hint = request.POST.get('hint')
+    pre_append = request.POST.get('preappendcode')
+    post_append = request.POST.get('postappendcode')
+    print pre_append
     try:
         problem = Problem(in_date=time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), accepted=0, submit=0, solved=0,
                           time_limit=timelimit, sample_output=sampleoutput, sample_input=sampleinput, title=title,
-                          memory_limit=memlimit, input=input, output=output, description=descripe, hint=hint)
+                          memory_limit=memlimit, input=input, output=output, description=descripe, hint=hint,
+                          pre_append=pre_append, post_append=post_append)
         problem.save()
 
     except:
