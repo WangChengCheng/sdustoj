@@ -270,9 +270,9 @@ def get_code(solution_id, problem_id, pro_lang):
     pre = pre_code[0][0]
     post = post_code[0][0]
     if pre is not None:
-        code = pre.append(code)  # 拼接pre_code+code
+        code = pre + code  # 拼接pre_code+code
     if post is not None:
-        code = code.append(post)  # 拼接code+post_code
+        code = code + post  # 拼接code+post_code
     print code
     try:
         work_path = os.path.join(config.work_dir, str(solution_id))
